@@ -24,6 +24,9 @@ def print_issue_table(homeworks: list[Homework], last=None):
             str(homework.problem),
             homework.student,
             homework.status.value,
+            homework.deadline_string,
+            homework.left,
+            homework.updated_string,
         )
         table.add_row(
             *row_columns,
@@ -35,13 +38,16 @@ def print_issue_table(homeworks: list[Homework], last=None):
 
 
 def setup_table(last: int) -> Table:
-    table = Table(title=f"My Praktikum Review Tickets ({last} last)", box=box.MINIMAL_HEAVY_HEAD)
+    table = Table(title="My Praktikum Review Tickets", box=box.MINIMAL_HEAVY_HEAD)
     table.add_column("#", justify="right")
     table.add_column("ticket")
     table.add_column("no", justify="right")
     table.add_column("pr", justify="right")
     table.add_column("student"),
     table.add_column("status")
+    table.add_column("deadline", justify="right")
+    table.add_column("left", justify="right")
+    table.add_column("updated")
     return table
 
 
@@ -64,7 +70,7 @@ if __name__ == "__main__":
             issue_key=issue.key,
             summary=issue.summary,
             status=issue.status.key,
-            status_updated=None,
+            status_updated=issue.statusStartTime,
             description=issue.description,
             number=number,
             first=issue.previousStatus is None,
