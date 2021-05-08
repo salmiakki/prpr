@@ -13,7 +13,10 @@ class PraktikTrackerClient(TrackerClient):
         }
         logger.debug("Fetching issues...")
         issues = self.issues.find(filter=filter_expression)
-        return sorted(issues, key=by_issue_key)
+        sorted_issues = sorted(issues, key=by_issue_key)
+        for number, si in enumerate(sorted_issues, 1):
+            si.prpr_number = number
+        return sorted_issues
 
 
 def get_startack_client(config) -> PraktikTrackerClient:
