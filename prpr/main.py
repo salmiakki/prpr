@@ -6,10 +6,10 @@ from rich.console import Console
 from rich.table import Table
 
 from prpr.config import get_config
-from prpr.homework import Homework
+from prpr.homework import Homework, Status
 from prpr.startrack_client import get_startack_client
 
-DISPLAYED_TAIL_LENGTH = 15
+DISPLAYED_TAIL_LENGTH = None
 
 
 def print_issue_table(homeworks: list[Homework], last=None):
@@ -27,8 +27,7 @@ def print_issue_table(homeworks: list[Homework], last=None):
         )
         table.add_row(
             *row_columns,
-            end_section=table_number == 10,  # Just a demo at the time of writing.
-            style="dim" if table_number > 10 else None,
+            style="dim" if homework.status == Status.ON_THE_SIDE_OF_USER else None,
         )
 
     console = Console()
@@ -44,6 +43,14 @@ def setup_table(last: int) -> Table:
     table.add_column("student"),
     table.add_column("status")
     return table
+
+
+def sort_homeworks(homeworks: list[Homework]) -> list[Homework]:
+    return sorted(homeworks, key=Homework.order_key)
+
+
+def filter_homeworks(homeworks: list[Homework]) -> list[Homework]:
+    return [h for h in homeworks if h.status != Status.RESOLVED]
 
 
 if __name__ == "__main__":
@@ -64,4 +71,6 @@ if __name__ == "__main__":
         )
         for number, issue in enumerate(issues, 1)
     ]
-    print_issue_table(homeworks, last=DISPLAYED_TAIL_LENGTH)
+    filtered_homeworks = filter_homeworks(homeworks)
+    sorted_homeworks = sort_homeworks(filtered_homeworks)
+    print_issue_table(sorted_homeworks, last=DISPLAYED_TAIL_LENGTH)

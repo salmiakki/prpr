@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from datetime import datetime, timedelta
 from enum import Enum
@@ -52,3 +54,13 @@ class Homework:
         """E.g. "PCR-69105" -> 69105"""
         assert key.startswith("PCR-")
         return int(key.removeprefix("PCR-"))
+
+    @staticmethod
+    def order_key(homework: Homework) -> Tuple[int, int]:
+        status_order = {
+            Status.REVIEW: 0,
+            Status.OPEN: 1,
+            Status.ON_THE_SIDE_OF_USER: 2,
+            Status.RESOLVED: 3,
+        }
+        return status_order.get(homework.status, -1), homework.number
