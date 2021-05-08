@@ -1,6 +1,8 @@
 from loguru import logger
 from yandex_tracker_client import TrackerClient
 
+from prpr.homework import Homework
+
 YANDEX_ORG_ID = 0
 STARTREK_TOKEN_KEY_NAME = "startrek_token"
 
@@ -14,7 +16,7 @@ class PraktikTrackerClient(TrackerClient):
         logger.debug("Fetching issues...")
         issues = self.issues.find(filter=filter_expression)
         sorted_issues = sorted(issues, key=by_issue_key)
-        for number, si in enumerate(sorted_issues, 1):
+        for number, si in enumerate(sorted_issues, 1):  # TODO: remove
             si.prpr_number = number
         return sorted_issues
 
@@ -32,7 +34,4 @@ def get_startack_client(config) -> PraktikTrackerClient:
 
 def by_issue_key(issue) -> int:
     key: str = issue.key  # e.g. PCR-12345
-    assert key.startswith("PCR-")
-    key_number_part = key.removeprefix("PCR-")
-    key_number = int(key_number_part)
-    return key_number
+    return Homework.to_issue_key_number(key)
