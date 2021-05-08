@@ -23,7 +23,7 @@ def print_issue_table(homeworks: list[Homework], last=None):
             str(homework.number),
             str(homework.problem),
             homework.student,
-            homework.status.value,
+            homework.pretty_status,
             homework.deadline_string,
             homework.left,
             homework.updated_string,
@@ -44,7 +44,7 @@ def setup_table(last: int) -> Table:
     table.add_column("no", justify="right")
     table.add_column("pr", justify="right")
     table.add_column("student"),
-    table.add_column("status")
+    table.add_column("st")
     table.add_column("deadline", justify="right")
     table.add_column("left", justify="right")
     table.add_column("updated")

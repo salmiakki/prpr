@@ -73,8 +73,19 @@ class Homework:
         return f"{hours:2d}:{minutes:02d}"
 
     @property
+    def pretty_status(self) -> str:
+        if self.missed_deadline:
+            return "🙀"
+        return {
+            Status.REVIEW: "🔎",
+            Status.OPEN: "🔧",
+            Status.ON_THE_SIDE_OF_USER: "🎓",
+            Status.RESOLVED: "✔️",
+        }.get(self.status)
+
+    @property
     def missed_deadline(self):
-        return self.left_s < 0
+        return self.left_s is not None and self.left_s < 0
 
     @staticmethod
     def _compute_deadline(status_updated: Optional[datetime], status: Status) -> Optional[datetime]:
