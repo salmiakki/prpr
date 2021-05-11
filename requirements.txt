@@ -1,3 +1,4 @@
 PyYAML==5.4.1
 loguru==0.5.3
+rich==10.1.0
 yandex_tracker_client==1.9
