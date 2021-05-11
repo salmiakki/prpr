@@ -7,6 +7,7 @@ from typing import Optional, Tuple
 
 
 class Status(Enum):
+    IN_REVIEW = "inReview"
     OPEN = "open"
     RESOLVED = "resolved"
     ON_THE_SIDE_OF_USER = "onTheSideOfUser"
@@ -77,7 +78,7 @@ class Homework:
         if self.missed_deadline:
             return "🙀"
         return {
-            Status.REVIEW: "🔎",
+            Status.IN_REVIEW: "🔎",
             Status.OPEN: "🔧",
             Status.ON_THE_SIDE_OF_USER: "🎓",
             Status.RESOLVED: "✔️",
