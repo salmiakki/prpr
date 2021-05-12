@@ -1,4 +1,6 @@
 PyYAML==5.4.1
 loguru==0.5.3
+pytest==5.4.1
+pytest-freezegun==0.4.2
 rich==10.1.0
 yandex_tracker_client==1.9

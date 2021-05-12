@@ -7,6 +7,8 @@ from typing import Optional, Tuple
 
 from loguru import logger
 
+LOCAL_TIMEZONE = datetime.now().astimezone().tzinfo
+
 
 class Status(Enum):
     IN_REVIEW = "inReview"
@@ -53,7 +55,7 @@ class Homework:
     def updated_string(self) -> Optional[str]:
         if self.status_updated is None or self.deadline:
             return None
-        age = datetime.now().astimezone(tz=None) - self.status_updated
+        age = datetime.now(LOCAL_TIMEZONE) - self.status_updated
         if age > timedelta(days=7):
             return f"{self.status_updated:{self.UPDATED_LONG_AGO_FORMAT}} ({age.days} days ago)"
         return f"{self.status_updated:{self.UPDATED_FORMAT}}"
@@ -63,25 +65,28 @@ class Homework:
         """Seconds to deadline. Negative for missed deadlines"""
         if self.deadline is None:
             return None
-        td = self.deadline - datetime.now().astimezone(tz=None)
+        td = self.deadline - datetime.now(LOCAL_TIMEZONE)
         return int(td.total_seconds())
 
     @property
-    def _left_hours_and_minutes(self) -> Optional[Tuple[int, int]]:
+    def _left_hours_and_minutes(self) -> Optional[Tuple[int, int, bool]]:
+        """Return hours, minutes and True if deadline is missed, False otherwise"""
         if self.deadline is None:
             return None
         total_seconds = self._left_seconds
-        hours, seconds = divmod(total_seconds, self.SECONDS_PER_HOUR)
+        hours, seconds = divmod(abs(total_seconds), self.SECONDS_PER_HOUR)
         minutes = seconds // self.SECONDS_PER_MINUTE
-        return hours, minutes
+        return hours, minutes, total_seconds < 0
 
     @property
     def left(self) -> Optional[str]:
         """E.g. "1:03"."""
         if self.deadline is None:
             return None
-        hours, minutes = self._left_hours_and_minutes
-        return f"{hours:2d}:{minutes:02d}"
+        hours, minutes, missed = self._left_hours_and_minutes
+        if missed:
+            return f"-{hours:d}:{minutes:02d}"
+        return f"{hours:d}:{minutes:02d}"
 
     @property
     def deadline_missed(self):
@@ -145,6 +150,5 @@ class Homework:
             raise ValueError(f"Unexpected datetime string format: {datetime_string} 😿")
         datetime_wo_tz = datetime_string.removesuffix(utc_tz_suffix)
         naive_utc_datetime = datetime.fromisoformat(datetime_wo_tz)
-        local_datetime = naive_utc_datetime.replace(tzinfo=timezone.utc).astimezone(tz=None)
-        # It's not actually local, it's naive. TODO: add local tz
+        local_datetime = naive_utc_datetime.replace(tzinfo=timezone.utc).astimezone(tz=LOCAL_TIMEZONE)
         return local_datetime
