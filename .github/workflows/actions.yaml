@@ -1,4 +1,4 @@
-name: prpr test
+name: prpr tests
 
 on: [push]
 
