@@ -15,6 +15,7 @@ class Status(Enum):
     OPEN = "open"
     ON_THE_SIDE_OF_USER = "onTheSideOfUser"
     RESOLVED = "resolved"
+    CLOSED = "closed"
 
 
 class Homework:
@@ -101,6 +102,7 @@ class Homework:
             Status.OPEN: "🔧",
             Status.ON_THE_SIDE_OF_USER: "🎓",
             Status.RESOLVED: "✔️",
+            Status.CLOSED: "✔️",
         }.get(self.status, "⁉️")
 
     @staticmethod
@@ -134,6 +136,7 @@ class Homework:
             Status.OPEN: 1,
             Status.ON_THE_SIDE_OF_USER: 2,
             Status.RESOLVED: 3,
+            Status.CLOSED: 4,
         }
         if homework.status not in status_order:
             logger.warning(f"Unexpected status: {homework.status} for {homework.issue_key}")
