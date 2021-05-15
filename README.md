@@ -5,6 +5,7 @@
 ## Как воспользоваться
 
 Нужен Python 3.9+.
+Получить токен для Стартрека можно [тут](https://oauth.yandex-team.ru/authorize?response_type=token&client_id=5f671d781aca402ab7460fde4050267b)
 
 ### Dotfile
 
