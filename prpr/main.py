@@ -13,7 +13,7 @@ def sort_homeworks(homeworks: list[Homework]) -> list[Homework]:
 
 
 def filter_homeworks(homeworks: list[Homework]) -> list[Homework]:
-    return [h for h in homeworks if h.status != Status.RESOLVED]
+    return [h for h in homeworks if h.status not in (Status.RESOLVED, Status.CLOSED)]
 
 
 def main():
