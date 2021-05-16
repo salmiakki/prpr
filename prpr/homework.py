@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timedelta, timezone
-from enum import Enum
+from enum import IntEnum
 from typing import Optional, Tuple
 
 from loguru import logger
@@ -10,12 +10,30 @@ from loguru import logger
 LOCAL_TIMEZONE = datetime.now().astimezone().tzinfo
 
 
-class Status(Enum):
-    IN_REVIEW = "inReview"
-    OPEN = "open"
-    ON_THE_SIDE_OF_USER = "onTheSideOfUser"
-    RESOLVED = "resolved"
-    CLOSED = "closed"
+class Status(IntEnum):
+    UNKNOWN = -1
+    IN_REVIEW = 0
+    OPEN = 1
+    ON_THE_SIDE_OF_USER = 2
+    RESOLVED = 3
+    CLOSED = 4
+    # If a new status is added, update Homework.pretty_status accordingly
+
+    @staticmethod  # can't have class variables in Enums
+    def from_string(status: str) -> Status:
+        status_map = {
+            "inReview": Status.IN_REVIEW,
+            "open": Status.OPEN,
+            "onTheSideOfUser": Status.ON_THE_SIDE_OF_USER,
+            "resolved": Status.RESOLVED,
+            "closed": Status.CLOSED,
+        }
+        assert len(Status) - 1 == len(status_map), "status_map is probably missing some keys."
+        try:
+            return status_map[status]
+        except KeyError:
+            logger.error(f"Unexpected status: {status}.")
+            return Status.UNKNOWN
 
 
 class Homework:
@@ -39,7 +57,7 @@ class Homework:
         self.number = number
         self.status_updated = self._parse_datetime(status_updated)
         self.problem, self.student = self._extract_problem_and_student(summary)
-        self.status = Status(status)
+        self.status = Status.from_string(status)
         self.issue_key = issue_key
 
     @property
@@ -131,16 +149,7 @@ class Homework:
 
     @staticmethod
     def order_key(homework: Homework) -> Tuple[int, datetime]:
-        status_order = {
-            Status.IN_REVIEW: 0,
-            Status.OPEN: 1,
-            Status.ON_THE_SIDE_OF_USER: 2,
-            Status.RESOLVED: 3,
-            Status.CLOSED: 4,
-        }
-        if homework.status not in status_order:
-            logger.warning(f"Unexpected status: {homework.status} for {homework.issue_key}")
-        return status_order.get(homework.status, -1), homework.status_updated
+        return homework.status, homework.status_updated
 
     @staticmethod
     def _parse_datetime(datetime_string: Optional[str]) -> Optional[datetime]:
