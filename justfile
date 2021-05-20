@@ -5,3 +5,9 @@ run:
 
 test:
     python3 -m pytest --verbose
+
+help:
+    python3 -m prpr.main --help
+
+black:
+    black --line-length 119 .
