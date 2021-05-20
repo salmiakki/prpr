@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import sys
+import webbrowser
 
 from loguru import logger
 
@@ -51,6 +52,19 @@ def main():
     )
     sorted_homeworks = sort_homeworks(filtered_homeworks)
     print_issue_table(sorted_homeworks, last=DISPLAYED_TAIL_LENGTH)
+
+    open_pages(args.open, sorted_homeworks)
+
+
+def open_pages(open: bool, sorted_homeworks: list[Homework]) -> None:
+    if open and sorted_homeworks:
+        homework_to_open = sorted_homeworks[0]
+        startrek_url = homework_to_open.issue_url
+        logger.info(f"Opening {startrek_url} ...")
+        webbrowser.open(startrek_url)
+        if revisor_url := homework_to_open.revisor_url:
+            logger.info(f"Opening {revisor_url} ...")  # TODO: open twice for second+ iterations
+            webbrowser.open(revisor_url)
 
 
 def configure_logger(verbose):
