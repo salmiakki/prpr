@@ -37,8 +37,9 @@ def configure_arg_parser():
     filters.add_argument(
         "-s",
         "--student",
-        help="substring to be found in the student column, mail works best",
+        help="the substring to be found in the student column, mail works best",
     )
+    arg_parser.add_argument("-o", "--open", action="store_true", default=False, help="Open homework pages in browser")
     arg_parser.add_argument(
         "-v",
         "--verbose",

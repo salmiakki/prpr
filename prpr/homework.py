@@ -56,6 +56,7 @@ class Homework:
         self.first = first  # TODO: remove
         self.number = number
         self.status_updated = self._parse_datetime(status_updated)
+        self.description = description
         self.problem, self.student = self._extract_problem_and_student(summary)
         self.status = Status.from_string(status)
         self.issue_key = issue_key
@@ -146,6 +147,15 @@ class Homework:
         """E.g. "PCR-69105" -> 69105."""
         assert key.startswith("PCR-")
         return int(key.removeprefix("PCR-"))
+
+    @property
+    def revisor_url(self) -> str:
+        if m := re.search(
+            r"==(?P<url>https://praktikum-admin\.yandex-team\.ru/office/revisor-review/(\d+)/(\w+))\b",
+            self.description,
+        ):
+            return m.group("url")
+        logger.warning(f"Failed to extract revisor url from '{self.description}' 😿")
 
     @staticmethod
     def order_key(homework: Homework) -> Tuple[int, datetime]:
