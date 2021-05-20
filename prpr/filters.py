@@ -36,7 +36,7 @@ def filter_homeworks(
     homeworks: list[Homework],
     *,
     mode: Mode,
-    problems: Optional[list[int]] = None,
+    projects: Optional[list[int]] = None,
     no: Optional[int] = None,
     student: Optional[str] = None,
 ) -> list[Homework]:
@@ -57,8 +57,8 @@ def filter_homeworks(
     elif mode == Mode.CLOSED:
         result = _filter_homeworks_by_status(homeworks, CLOSED_STATUSES)
 
-    if problems:
-        result = [h for h in result if h.problem in problems]
+    if projects:
+        result = [h for h in result if h.project in projects]
     if student:
         result = [h for h in result if student in h.student]
     return result

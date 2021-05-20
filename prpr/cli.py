@@ -23,10 +23,10 @@ def configure_arg_parser():
     )
     filters.add_argument(
         "-p",
-        "--problems",
+        "--projects",
         type=int,
         nargs="+",
-        help="the numbers of problems to be shown; multiple space-separated values are accepted",
+        help="the numbers of projects to be shown; multiple space-separated values are accepted",
     )
     filters.add_argument(
         "-n",

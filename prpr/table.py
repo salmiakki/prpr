@@ -18,7 +18,7 @@ def print_issue_table(homeworks: list[Homework], last=None):
             str(table_number),
             homework.issue_url,
             str(homework.number),
-            str(homework.problem),
+            str(homework.project),
             homework.student,
             homework.pretty_status,
             homework.deadline_string,

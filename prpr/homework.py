@@ -57,7 +57,7 @@ class Homework:
         self.number = number
         self.status_updated = self._parse_datetime(status_updated)
         self.description = description
-        self.problem, self.student = self._extract_problem_and_student(summary)
+        self.project, self.student = self._extract_project_and_student(summary)
         self.status = Status.from_string(status)
         self.issue_key = issue_key
 
@@ -130,12 +130,12 @@ class Homework:
         return status_updated + timedelta(days=1) if status in {Status.OPEN} else None
 
     def __repr__(self) -> str:
-        return f"no {self.number}: {self.student} {self.problem} ({self.status})"
+        return f"no {self.number}: {self.student} {self.project} ({self.status})"
 
     @staticmethod
-    def _extract_problem_and_student(summary) -> Tuple[int, str]:
-        if m := re.match(r"\[(?P<problem>\d+)( \(back_cohort_(?P<cohort>\d+)\))?\] (?P<student>.*)", summary):
-            return int(m.group("problem")), m.group("student")
+    def _extract_project_and_student(summary) -> Tuple[int, str]:
+        if m := re.match(r"\[(?P<project>\d+)( \(back_cohort_(?P<cohort>\d+)\))?\] (?P<student>.*)", summary):
+            return int(m.group("project")), m.group("student")
         raise ValueError(f"Couldn't parse summary '{summary}' 😿")
 
     @property
