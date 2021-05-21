@@ -23,10 +23,10 @@ def configure_arg_parser():
     )
     filters.add_argument(
         "-p",
-        "--problems",
+        "--projects",
         type=int,
         nargs="+",
-        help="the numbers of problems to be shown; multiple space-separated values are accepted",
+        help="the numbers of projects to be shown; multiple space-separated values are accepted",
     )
     filters.add_argument(
         "-n",
@@ -39,7 +39,13 @@ def configure_arg_parser():
         "--student",
         help="the substring to be found in the student column, mail works best",
     )
-    arg_parser.add_argument("-o", "--open", action="store_true", default=False, help="Open homework pages in browser")
+    arg_parser.add_argument(
+        "-o",
+        "--open",
+        action="store_true",
+        default=False,
+        help="Open the first homework in the list "
+             "in two tabs of default browser: tracker and reviewer")
     arg_parser.add_argument(
         "-v",
         "--verbose",
