@@ -40,6 +40,7 @@ def main():
             description=issue.description,
             number=number,
             first=issue.previousStatus is None,
+            transitions=client.get_status_history(issue.key, issue.status.key),
         )
         for number, issue in enumerate(issues, 1)
     ]
@@ -53,18 +54,21 @@ def main():
     sorted_homeworks = sort_homeworks(filtered_homeworks)
     print_issue_table(sorted_homeworks, last=DISPLAYED_TAIL_LENGTH)
 
-    open_pages(args.open, sorted_homeworks)
+    if args.open:
+        open_pages(sorted_homeworks)
 
 
-def open_pages(open: bool, sorted_homeworks: list[Homework]) -> None:
-    if open and sorted_homeworks:
+def open_pages(sorted_homeworks: list[Homework]) -> None:
+    if sorted_homeworks:
         homework_to_open = sorted_homeworks[0]
         startrek_url = homework_to_open.issue_url
         logger.info(f"Opening {startrek_url} ...")
         webbrowser.open(startrek_url)
         if revisor_url := homework_to_open.revisor_url:
-            logger.info(f"Opening {revisor_url} ...")  # TODO: open twice for second+ iterations
+            logger.info(f"Opening {revisor_url} ...")
             webbrowser.open(revisor_url)
+            if homework_to_open.iteration and homework_to_open.iteration > 1:
+                webbrowser.open(revisor_url)
 
 
 def configure_logger(verbose):

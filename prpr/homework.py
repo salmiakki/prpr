@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta, timezone
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import IntEnum
 from typing import Optional, Tuple
 
 from loguru import logger
 
-LOCAL_TIMEZONE = datetime.now().astimezone().tzinfo
+from prpr.utils import LOCAL_TIMEZONE, parse_datetime
 
 
 class Status(IntEnum):
@@ -52,18 +53,32 @@ class Homework:
         description: str,
         number: int,  # the ordinal number in of all one's tickets sorted by issue key
         first: bool,
+        transitions: Optional[list[StatusTransition]] = None,
     ):
         self.first = first  # TODO: remove
         self.number = number
-        self.status_updated = self._parse_datetime(status_updated)
+        self.status_updated = parse_datetime(status_updated)
         self.description = description
-        self.problem, self.student = self._extract_problem_and_student(summary)
+        problem, student = self._extract_problem_and_student(summary)
+        self.problem = problem
+        self.student = student
         self.status = Status.from_string(status)
         self.issue_key = issue_key
+        self._iteration: Optional[int] = StatusTransition.compute_iteration(transitions)
+        self.last_opened: Optional[datetime] = StatusTransition.compute_last_opened(transitions)
 
     @property
-    def deadline(self) -> datetime:
-        return self._compute_deadline(self.status_updated, self.status)
+    def iteration(self):
+        if cached := self._iteration:
+            return cached
+        if self.status in {Status.CLOSED, Status.RESOLVED}:
+            return None
+        # We could retrieve iterations here, lazily. I don't want to inject the client instance though.
+        # Suggestions are welcome.
+
+    @property
+    def deadline(self) -> Optional[datetime]:
+        return self._compute_deadline(self.status_updated, self.status, self.last_opened)
 
     @property
     def deadline_string(self) -> Optional[str]:
@@ -125,9 +140,14 @@ class Homework:
         }.get(self.status, "⁉️")
 
     @staticmethod
-    def _compute_deadline(status_updated: Optional[datetime], status: Status) -> Optional[datetime]:
+    def _compute_deadline(
+        status_updated: Optional[datetime], status: Status, last_opened: Optional[datetime] = None
+    ) -> Optional[datetime]:
         # TODO: handle IN_REVIEW homeworks (relies on iteration support)
-        return status_updated + timedelta(days=1) if status in {Status.OPEN} else None
+        if status in {Status.OPEN, Status.IN_REVIEW}:
+            if updated := (last_opened or status_updated):
+                return updated + timedelta(days=1)
+        return None
 
     def __repr__(self) -> str:
         return f"no {self.number}: {self.student} {self.problem} ({self.status})"
@@ -155,22 +175,31 @@ class Homework:
             self.description,
         ):
             return m.group("url")
-        logger.warning(f"Failed to extract revisor url from '{self.description}' 😿")
+        logger.warning(f"Failed to extract Revisor url from '{self.description}' 😿")
+        return None
 
     @staticmethod
     def order_key(homework: Homework) -> Tuple[int, datetime]:
         return homework.status, homework.status_updated
 
+
+@dataclass
+class StatusTransition:
+    from_: Optional[Status]
+    to: Status
+    timestamp: datetime
+
     @staticmethod
-    def _parse_datetime(datetime_string: Optional[str]) -> Optional[datetime]:
-        """E.g. "2020-09-23T22:14:37.658+0000" -> datetime(2020, 9, 23, 22, 14, 37) (more or less)."""
-        if datetime_string is None:
+    def compute_iteration(transitions: Optional[list[StatusTransition]]) -> Optional[int]:
+        if not transitions:
             return None
-        # Note to self: dateutil can parse these dates.
-        utc_tz_suffix = "+0000"
-        if not datetime_string.endswith(utc_tz_suffix):
-            raise ValueError(f"Unexpected datetime string format: {datetime_string} 😿")
-        datetime_wo_tz = datetime_string.removesuffix(utc_tz_suffix)
-        naive_utc_datetime = datetime.fromisoformat(datetime_wo_tz)
-        local_datetime = naive_utc_datetime.replace(tzinfo=timezone.utc).astimezone(tz=LOCAL_TIMEZONE)
-        return local_datetime
+        iteration = sum(1 for t in transitions if t.to == Status.OPEN)
+        return iteration
+
+    @staticmethod
+    def compute_last_opened(transitions: Optional[list[StatusTransition]]) -> Optional[datetime]:
+        if not transitions:
+            return None
+        opened_timestamps = [t.timestamp for t in transitions if t.to == Status.OPEN]
+        last_opened = opened_timestamps[-1] if opened_timestamps else None
+        return last_opened
