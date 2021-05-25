@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 from enum import Enum, auto
 from typing import Iterable, Optional
 
@@ -39,6 +40,8 @@ def filter_homeworks(
     problems: Optional[list[int]] = None,
     no: Optional[int] = None,
     student: Optional[str] = None,
+    from_date: Optional[dt.date] = None,
+    to_date: Optional[dt.date] = None,
 ) -> list[Homework]:
     # TODO: return description as well to be used in the table title
     if no:
@@ -61,6 +64,12 @@ def filter_homeworks(
         result = [h for h in result if h.problem in problems]
     if student:
         result = [h for h in result if student in h.student]
+    if from_date:
+        from_date = dt.datetime.combine(from_date, dt.time.min).astimezone()
+        result = [h for h in result if h.status_updated >= from_date]
+    if to_date:
+        to_date = dt.datetime.combine(to_date, dt.time.max).astimezone()
+        result = [h for h in result if h.status_updated <= to_date]
     return result
 
 

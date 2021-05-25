@@ -1,4 +1,5 @@
 import argparse
+import datetime as dt
 
 from prpr.filters import Mode
 
@@ -39,7 +40,25 @@ def configure_arg_parser():
         "--student",
         help="the substring to be found in the student column, mail works best",
     )
-    arg_parser.add_argument("-o", "--open", action="store_true", default=False, help="Open homework pages in browser")
+    filters.add_argument(
+        "-f",
+        "--from_date",
+        help="The start date (YYYY-MM-DD)",
+        type=dt.date.fromisoformat,
+    )
+    filters.add_argument(
+        "-t",
+        "--to_date",
+        help="The end date (YYYY-MM-DD)",
+        type=dt.date.fromisoformat,
+    )
+    arg_parser.add_argument(
+        "-o",
+        "--open",
+        action="store_true",
+        default=False,
+        help="Open homework pages in browser"
+    )
     arg_parser.add_argument(
         "-v",
         "--verbose",
