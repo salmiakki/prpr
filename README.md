@@ -41,7 +41,7 @@ python3 -m prpr.main --help
 
 
 ```
-usage: main.py [-h] [-m {default,all,open,closed}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-o] [-v]
+usage: main.py [-h] [-m {default,all,open,closed}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-f FROM_DATE] [-t TO_DATE] [-o] [-v]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -62,6 +62,10 @@ filters:
   -n NO, --no NO        the no of the homework to be shown, all other filters are ignored
   -s STUDENT, --student STUDENT
                         the substring to be found in the student column, mail works best
+  -f FROM_DATE, --from_date FROM_DATE
+                        The start date (YYYY-MM-DD)
+  -t TO_DATE, --to_date TO_DATE
+                        The end date (YYYY-MM-DD)
 ```
 
 ### Примеры использования опций запуска
@@ -84,6 +88,12 @@ python -m prpr.main --mode all --student ivanov@yatube.ru
 python -m prpr.main --mode all --student "Василиса Пупкина"
 ```
 
+Вывести все закрытые работы в определенный период времени.
+Даты указываются в формате YYYY-MM-DD:
+```bash
+python -m prpr.main --mode closed --from_date 2021-04-15 --to_date 2021-05-15
+```
+
 ## Как работают итерации
 
 Номер итерации равен количеству переходов в статус `Открыт`.
@@ -93,6 +103,10 @@ python -m prpr.main --mode all --student "Василиса Пупкина"
 со статусом `Открыт` или `Ревью`.
 
 ## История изменений
+
+### 2021-05-26
+
+Добавлена поддержка фильтров по дате.
 
 ### 2021-05-24
 
@@ -105,7 +119,6 @@ python -m prpr.main --mode all --student "Василиса Пупкина"
 ## Тубидубидутуду
 
 1. Заполнить этот документ
-1. Показывать номер итерации
 1. Настройки и украшения
 1. Создать пакет cо скриптом запуска
 1. Уведомления

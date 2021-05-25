@@ -50,6 +50,8 @@ def main():
         problems=args.problems,
         no=args.no,
         student=args.student,
+        from_date=args.from_date,
+        to_date=args.to_date,
     )
     sorted_homeworks = sort_homeworks(filtered_homeworks)
     print_issue_table(sorted_homeworks, last=DISPLAYED_TAIL_LENGTH)
