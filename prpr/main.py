@@ -47,6 +47,7 @@ def main():
     filtered_homeworks = filter_homeworks(
         homeworks,
         mode=args.mode,
+        config=config,
         problems=args.problems,
         no=args.no,
         student=args.student,

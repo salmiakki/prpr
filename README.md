@@ -41,31 +41,32 @@ python3 -m prpr.main --help
 
 
 ```
-usage: main.py [-h] [-m {default,all,open,closed}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-f FROM_DATE] [-t TO_DATE] [-o] [-v]
+usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-f FROM_DATE] [-t TO_DATE] [-o] [-v]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -o, --open            Open homework pages in browser
+  -o, --open            open homework pages in browser
   -v, --verbose
 
 filters:
   these allow to specify the subset of homeworks to be displayed, can be composed
 
-  -m {default,all,open,closed}, --mode {default,all,open,closed}
-                        filter by status mode
-                                default: in review, open or on the side of user
-                                open: in review or open
-                                closed: resolved or closed
-                                all: all, duh
+  -m {standard,all,open,closed,closed-this-month}, --mode {standard,all,open,closed,closed-this-month}
+                        filter mode
+                                    standard: in review, open or on the side of user
+                                    open: in review or open
+                                    closed: resolved or closed
+                                    closed-this-month: resolved or closed this "month" aka 💰.
+                                    all: all, duh
   -p PROBLEMS [PROBLEMS ...], --problems PROBLEMS [PROBLEMS ...]
                         the numbers of problems to be shown; multiple space-separated values are accepted
   -n NO, --no NO        the no of the homework to be shown, all other filters are ignored
   -s STUDENT, --student STUDENT
                         the substring to be found in the student column, mail works best
-  -f FROM_DATE, --from_date FROM_DATE
-                        The start date (YYYY-MM-DD)
-  -t TO_DATE, --to_date TO_DATE
-                        The end date (YYYY-MM-DD)
+  -f FROM_DATE, --from-date FROM_DATE
+                        the start date (YYYY-MM-DD)
+  -t TO_DATE, --to-date TO_DATE
+                        the end date (YYYY-MM-DD)
 ```
 
 ### Примеры использования опций запуска
@@ -91,7 +92,13 @@ python -m prpr.main --mode all --student "Василиса Пупкина"
 Вывести все закрытые работы в определенный период времени.
 Даты указываются в формате YYYY-MM-DD:
 ```bash
-python -m prpr.main --mode closed --from_date 2021-04-15 --to_date 2021-05-15
+python -m prpr.main --mode closed --from-date 2021-04-16 --to-date 2021-05-15
+```
+
+Вывести закрытые в текущем учетном месяце работы:
+
+```bash
+python -m prpr.main --mode closed-this-month
 ```
 
 ## Как работают итерации
@@ -103,6 +110,12 @@ python -m prpr.main --mode closed --from_date 2021-04-15 --to_date 2021-05-15
 со статусом `Открыт` или `Ревью`.
 
 ## История изменений
+
+### 2021-05-27
+
+* Добавлен режим `closed-this-month`.
+* Ключи фильтров по датам переименованы в `--date-from` и `--date-to`.
+* Режим `default` переименован в `standard`.
 
 ### 2021-05-26
 
@@ -118,7 +131,6 @@ python -m prpr.main --mode closed --from_date 2021-04-15 --to_date 2021-05-15
 
 ## Тубидубидутуду
 
-1. Заполнить этот документ
 1. Настройки и украшения
 1. Создать пакет cо скриптом запуска
 1. Уведомления
