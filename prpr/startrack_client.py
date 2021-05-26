@@ -6,8 +6,8 @@ import requests
 from loguru import logger
 from yandex_tracker_client import TrackerClient
 
+from prpr.date_utils import parse_datetime
 from prpr.homework import Homework, Status, StatusTransition
-from prpr.utils import parse_datetime
 
 YANDEX_ORG_ID = 0
 STARTREK_TOKEN_KEY_NAME = "startrek_token"

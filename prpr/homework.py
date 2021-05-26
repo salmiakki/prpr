@@ -8,7 +8,7 @@ from typing import Optional, Tuple
 
 from loguru import logger
 
-from prpr.utils import LOCAL_TIMEZONE, parse_datetime
+from prpr.date_utils import LOCAL_TIMEZONE, parse_datetime
 
 
 class Status(IntEnum):

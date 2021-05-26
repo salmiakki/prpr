@@ -10,17 +10,30 @@ def configure_arg_parser():
         "filters",
         "these allow to specify the subset of homeworks to be displayed, can be composed",
     )
+    configure_filter_arguments(filters)
+    arg_parser.add_argument("-o", "--open", action="store_true", default=False, help="open homework pages in browser")
+    arg_parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        default=False,
+    )
+    return arg_parser
+
+
+def configure_filter_arguments(filters):
     filters.add_argument(
         "-m",
         "--mode",
         type=Mode.from_string,
         choices=list(Mode),
-        default=Mode.DEFAULT,
-        help="""filter by status mode
-        default: in review, open or on the side of user
-        open: in review or open
-        closed: resolved or closed
-        all: all, duh""",
+        default=Mode.STANDARD,
+        help="""filter mode
+            standard: in review, open or on the side of user
+            open: in review or open
+            closed: resolved or closed
+            closed-this-month: resolved or closed this "month" aka 💰.
+            all: all, duh""",
     )
     filters.add_argument(
         "-p",
@@ -42,27 +55,13 @@ def configure_arg_parser():
     )
     filters.add_argument(
         "-f",
-        "--from_date",
-        help="The start date (YYYY-MM-DD)",
+        "--from-date",
+        help="the start date (YYYY-MM-DD)",
         type=dt.date.fromisoformat,
     )
     filters.add_argument(
         "-t",
-        "--to_date",
-        help="The end date (YYYY-MM-DD)",
+        "--to-date",
+        help="the end date (YYYY-MM-DD)",
         type=dt.date.fromisoformat,
     )
-    arg_parser.add_argument(
-        "-o",
-        "--open",
-        action="store_true",
-        default=False,
-        help="Open homework pages in browser"
-    )
-    arg_parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        default=False,
-    )
-    return arg_parser
