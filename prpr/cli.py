@@ -15,8 +15,8 @@ def configure_arg_parser():
     arg_parser.add_argument(
         "-v",
         "--verbose",
-        action="store_true",
-        default=False,
+        action="count",
+        default=0,
     )
     return arg_parser
 
