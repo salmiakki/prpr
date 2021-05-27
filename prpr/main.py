@@ -90,8 +90,12 @@ def open_pages(sorted_homeworks: list[Homework]) -> None:
 
 
 def configure_logger(verbose):
-    if not verbose:
-        logger.remove()
+    if verbose == 2:  # -vv
+        return
+    logger.remove()
+    if verbose == 1:  # -v
+        logger.add(sys.stderr, level="INFO")
+    elif not verbose:
         logger.add(sys.stderr, level="WARNING")
 
 
