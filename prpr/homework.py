@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import IntEnum
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 
 from loguru import logger
 
@@ -48,6 +48,8 @@ class Homework:
         self,
         issue_key: str,  # e.g. "PCR-12345"
         summary: str,  # e.g. "[1] Даниил Хармс (yuvachev@yandex.ru)"
+        cohort: int,
+        components: list[Any],
         status: str,  # e.g. "open"
         status_updated: str,  # e.g. "2020-09-23T22:14:37.658+0000"
         description: str,
@@ -66,6 +68,7 @@ class Homework:
         self.issue_key = issue_key
         self._iteration: Optional[int] = StatusTransition.compute_iteration(transitions)
         self.last_opened: Optional[datetime] = StatusTransition.compute_last_opened(transitions)
+        self.cohort: str = self._specify_cohort(cohort, components)
 
     @property
     def iteration(self):
@@ -157,6 +160,20 @@ class Homework:
         if m := re.match(r"\[(?P<problem>\d+)( \(back_cohort_(?P<cohort>\d+)\))?\] (?P<student>.*)", summary):
             return int(m.group("problem")), m.group("student")
         raise ValueError(f"Couldn't parse summary '{summary}' 😿")
+
+    @staticmethod
+    def _specify_cohort(cohort, components) -> str:
+        cohort = str(cohort)
+        if not components:
+            return cohort
+
+        first_component = components[0]
+        name = first_component.name
+        if name == "backend-developer":
+            return cohort
+        if name == "python-developer-plus":
+            return cohort + "+"
+        raise ValueError(f"Unknown component name {name}")
 
     @property
     def issue_url(self) -> str:

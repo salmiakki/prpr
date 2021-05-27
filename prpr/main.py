@@ -35,6 +35,8 @@ def main():
         Homework(
             issue_key=issue.key,
             summary=issue.summary,
+            cohort=issue.cohort,
+            components=issue.components,
             status=issue.status.key,
             status_updated=issue.statusStartTime,
             description=issue.description,
