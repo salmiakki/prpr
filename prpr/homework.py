@@ -48,6 +48,7 @@ class Homework:
         self,
         issue_key: str,  # e.g. "PCR-12345"
         summary: str,  # e.g. "[1] Даниил Хармс (yuvachev@yandex.ru)"
+        cohort: str,  # e.g. "16", "1+"
         status: str,  # e.g. "open"
         status_updated: str,  # e.g. "2020-09-23T22:14:37.658+0000"
         description: str,
@@ -62,6 +63,7 @@ class Homework:
         problem, student = self._extract_problem_and_student(summary)
         self.problem = problem
         self.student = student
+        self.cohort = cohort
         self.status = Status.from_string(status)
         self.issue_key = issue_key
         self._iteration: Optional[int] = StatusTransition.compute_iteration(transitions)

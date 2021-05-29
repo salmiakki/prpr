@@ -10,10 +10,16 @@
 
 ### Dotfile
 
-В `~/.prpr.yaml` нужно положить токен доступа к Стартреку:
+В `~/.prpr.yaml` нужно положить токен доступа к Стартреку,
+определить первое число для начала месяца расчёта зарплаты,
+определить суффиксы для уточнения когорт (в зависимости от курса):
 
 ```yaml
 startrek_token: your_token_here
+month_start: 16  # Meaning closed tickets are grouped by May 16-June 15, June 16-July 16 and so on.
+component_suffixes:  # suffixes for cohort definition according to course
+  backend-developer: ''
+  python-developer-plus: '+'
 ```
 
 ### Запуск
@@ -41,7 +47,8 @@ python3 -m prpr.main --help
 
 
 ```
-usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-f FROM_DATE] [-t TO_DATE] [-o] [-v]
+usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-c COHORTS [COHORTS ...]] [-f FROM_DATE] [-t TO_DATE]
+               [-o] [-v]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -63,6 +70,8 @@ filters:
   -n NO, --no NO        the no of the homework to be shown, all other filters are ignored
   -s STUDENT, --student STUDENT
                         the substring to be found in the student column, mail works best
+  -c COHORTS [COHORTS ...], --cohorts COHORTS [COHORTS ...]
+                        cohorts to be shown; multiple space-separated values are accepted
   -f FROM_DATE, --from-date FROM_DATE
                         the start date (YYYY-MM-DD)
   -t TO_DATE, --to-date TO_DATE
@@ -71,10 +80,10 @@ filters:
 
 ### Примеры использования опций запуска
 
-Вывести только 1 и 2 проекты:
+Вывести только 1 и 2 проекты для студентов 16 когорты и 1 когорты "Питон+":
 
 ```bash
-python -m prpr.main --problems 1 2
+python -m prpr.main --problems 1 2 --cohorts 16 1+
 ```
 
 Открыть в браузере работу № 100:
@@ -110,6 +119,11 @@ python -m prpr.main --mode closed-this-month
 со статусом `Открыт` или `Ревью`.
 
 ## История изменений
+
+### 2021-05-29
+
+* Добавлен вывод когорт в таблицу
+* Добавлен фильтр по когортам
 
 ### 2021-05-27
 

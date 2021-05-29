@@ -45,6 +45,7 @@ def filter_homeworks(
     problems: Optional[list[int]] = None,
     no: Optional[int] = None,
     student: Optional[str] = None,
+    cohorts: Optional[str] = None,
     from_date: Optional[dt.date] = None,
     to_date: Optional[dt.date] = None,
 ) -> list[Homework]:
@@ -78,6 +79,8 @@ def filter_homeworks(
         result = [h for h in result if h.problem in problems]
     if student:
         result = [h for h in result if student in h.student]
+    if cohorts:
+        result = [h for h in result if h.cohort in cohorts]
     if from_date:
         from_date = dt.datetime.combine(from_date, dt.time.min).astimezone()
         result = [h for h in result if from_date <= h.status_updated]

@@ -54,6 +54,12 @@ def configure_filter_arguments(filters):
         help="the substring to be found in the student column, mail works best",
     )
     filters.add_argument(
+        "-c",
+        "--cohorts",
+        nargs="+",
+        help="cohorts to be shown; multiple space-separated values are accepted",
+    )
+    filters.add_argument(
         "-f",
         "--from-date",
         help="the start date (YYYY-MM-DD)",

@@ -23,6 +23,7 @@ def test_left_hours_and_minutes(status_updated, expected_hours, expected_minutes
     homework = Homework(
         "PCR-12345",
         "[1] Даниил Хармс (yuvachev@yandex.ru)",
+        "1+",
         "open",
         status_updated,
         "",
@@ -47,6 +48,7 @@ def test_left(status_updated, expected):
     homework = Homework(
         "PCR-12345",
         "[1] Даниил Хармс (yuvachev@yandex.ru)",
+        "1+",
         "open",
         status_updated,
         "",
