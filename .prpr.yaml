@@ -1,3 +1,6 @@
 # Put this file in your home directory
 startrek_token: your_token_here
 month_start: 16  # Meaning closed tickets are grouped by May 16-June 15, June 16-July 16 and so on.
+component_suffixes:  # suffixes for cohort definition according to course
+  backend-developer: ''
+  python-developer-plus: '+'

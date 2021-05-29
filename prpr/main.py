@@ -13,6 +13,19 @@ from prpr.homework import Homework
 from prpr.startrack_client import get_startack_client
 from prpr.table import DISPLAYED_TAIL_LENGTH, print_issue_table
 
+COMPONENT_SUFFIXES = "component_suffixes"
+
+
+def get_cohort(cohort, components, config):
+    cohort = str(cohort)
+    if not components:
+        return cohort
+
+    first_component = components[0]
+    component_name = first_component.name
+    suffix_mapper = config.get(COMPONENT_SUFFIXES, {})
+    return cohort + suffix_mapper.get(component_name, '')
+
 
 def sort_homeworks(homeworks: list[Homework]) -> list[Homework]:
     return sorted(homeworks, key=Homework.order_key)
@@ -35,8 +48,7 @@ def main():
         Homework(
             issue_key=issue.key,
             summary=issue.summary,
-            cohort=issue.cohort,
-            components=issue.components,
+            cohort=get_cohort(issue.cohort, issue.components, config),
             status=issue.status.key,
             status_updated=issue.statusStartTime,
             description=issue.description,
@@ -53,6 +65,7 @@ def main():
         problems=args.problems,
         no=args.no,
         student=args.student,
+        cohorts=args.cohorts,
         from_date=args.from_date,
         to_date=args.to_date,
     )

@@ -53,7 +53,7 @@ def setup_table(last: int) -> Table:
     table.add_column("pr", justify="right")
     table.add_column("i")
     table.add_column("student")
-    table.add_column("coh")
+    table.add_column("co")
     table.add_column("st")
     table.add_column("deadline", justify="right")
     table.add_column("left", justify="right")
