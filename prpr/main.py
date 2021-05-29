@@ -24,7 +24,7 @@ def get_cohort(cohort, components, config):
     first_component = components[0]
     component_name = first_component.name
     suffix_mapper = config.get(COMPONENT_SUFFIXES, {})
-    return cohort + suffix_mapper.get(component_name, '')
+    return cohort + suffix_mapper.get(component_name, component_name)
 
 
 def sort_homeworks(homeworks: list[Homework]) -> list[Homework]:
