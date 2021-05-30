@@ -8,6 +8,7 @@ from loguru import logger
 
 from prpr.cli import configure_arg_parser
 from prpr.config import get_config
+from prpr.download import download
 from prpr.filters import filter_homeworks
 from prpr.homework import Homework
 from prpr.startrack_client import get_startack_client
@@ -54,6 +55,7 @@ def main():
             description=issue.description,
             number=number,
             first=issue.previousStatus is None,
+            course=extract_course(issue),
             transitions=client.get_status_history(issue.key, issue.status.key),
         )
         for number, issue in enumerate(issues, 1)
@@ -74,6 +76,21 @@ def main():
 
     if args.open:
         open_pages(sorted_homeworks)
+
+    if args.download:
+        if to_download := [hw for hw in sorted_homeworks if hw.open_or_in_review]:
+            for d in to_download[:1]:  # TODO: Configure the number
+                logger.info(f"Downloading {d}...")
+                download(d, config, headless=not args.head)  # TODO: This is ugly, refactor
+        else:
+            logger.warning("There's nothing to download. Consider relaxing the filters if that's not what you expect.")
+
+
+def extract_course(issue):
+    if components := issue.components:
+        return components[0].name
+    logger.warning(f"{issue.key} doesn't have components 😿")
+    return "unknown_course"
 
 
 def open_pages(sorted_homeworks: list[Homework]) -> None:

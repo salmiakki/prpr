@@ -29,6 +29,7 @@ def test_left_hours_and_minutes(status_updated, expected_hours, expected_minutes
         "",
         1,
         True,
+        "backend-developer",
     )
     assert homework._left_hours_and_minutes == (expected_hours, expected_minutes, deadline_missed)
 
@@ -54,5 +55,6 @@ def test_left(status_updated, expected):
         "",
         1,
         True,
+        "backend-developer",
     )
     assert homework.left == expected

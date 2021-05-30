@@ -11,7 +11,14 @@ def configure_arg_parser():
         "these allow to specify the subset of homeworks to be displayed, can be composed",
     )
     configure_filter_arguments(filters)
+
     arg_parser.add_argument("-o", "--open", action="store_true", default=False, help="open homework pages in browser")
+
+    download_options = arg_parser.add_argument_group(
+        "download",
+    )
+    configure_download_arguments(download_options)
+
     arg_parser.add_argument(
         "-v",
         "--verbose",
@@ -71,4 +78,19 @@ def configure_filter_arguments(filters):
         "--to-date",
         help="the end date (YYYY-MM-DD)",
         type=dt.date.fromisoformat,
+    )
+
+
+def configure_download_arguments(download_options):
+    download_options.add_argument(
+        "-d",
+        "--download",  # TODO: Add help messages when we have all the options we want
+        action="store_true",
+        default=False,
+    )
+    download_options.add_argument(
+        "--head",
+        help="download with visible browser window (default is headless, i.e. the window is hidden)",
+        action="store_true",
+        default=False,
     )

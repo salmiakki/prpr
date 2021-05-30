@@ -8,12 +8,9 @@ from dateutil.relativedelta import relativedelta
 from loguru import logger
 
 from prpr.date_utils import month_start_and_end
-from prpr.homework import Homework, Status
+from prpr.homework import CLOSED_STATUSES, OPEN_STATUSES, Homework, Status
 
 DEFAULT_MONTH_START = 16
-
-OPEN_STATUSES = {Status.OPEN, Status.IN_REVIEW}
-CLOSED_STATUSES = {Status.RESOLVED, Status.CLOSED}
 
 
 class Mode(Enum):
