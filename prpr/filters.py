@@ -69,7 +69,7 @@ def filter_homeworks(
         result = _filter_homeworks_by_status(homeworks, CLOSED_STATUSES)
     elif mode in (Mode.CLOSED_THIS_MONTH, Mode.CLOSED_PREVIOUS_MONTH):
         if from_date or to_date:
-            logger.warning(f"date filters are ignored for mode {Mode.CLOSED_THIS_MONTH} ⚠️")
+            logger.warning(f"date filters are ignored for mode {mode} ⚠️")
         result = _filter_homeworks_by_status(homeworks, CLOSED_STATUSES)
         month_start = config.get("month_start", DEFAULT_MONTH_START)
         day_in_month = dt.date.today()
