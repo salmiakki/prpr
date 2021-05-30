@@ -18,14 +18,14 @@ COMPONENT_SUFFIXES = "component_suffixes"
 
 
 def get_cohort(cohort, components, config):
-    cohort = str(cohort)
+    cohort = str(cohort) if cohort else "?"
     if not components:
         return cohort
 
     first_component = components[0]
     component_name = first_component.name
     suffix_mapper = config.get(COMPONENT_SUFFIXES, {})
-    return cohort + suffix_mapper.get(component_name, component_name)
+    return cohort + suffix_mapper.get(component_name, "")
 
 
 def sort_homeworks(homeworks: list[Homework]) -> list[Homework]:
