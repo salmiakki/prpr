@@ -47,8 +47,8 @@ python3 -m prpr.main --help
 
 
 ```
-usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-c COHORTS [COHORTS ...]] [-f FROM_DATE] [-t TO_DATE]
-               [-o] [-v]
+usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month,closed-previous-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-c COHORTS [COHORTS ...]]
+               [-f FROM_DATE] [-t TO_DATE] [-o] [-v]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -58,12 +58,13 @@ optional arguments:
 filters:
   these allow to specify the subset of homeworks to be displayed, can be composed
 
-  -m {standard,all,open,closed,closed-this-month}, --mode {standard,all,open,closed,closed-this-month}
+  -m {standard,all,open,closed,closed-this-month,closed-previous-month}, --mode {standard,all,open,closed,closed-this-month,closed-previous-month}
                         filter mode
                                     standard: in review, open or on the side of user
                                     open: in review or open
                                     closed: resolved or closed
                                     closed-this-month: resolved or closed this "month" aka 💰.
+                                    closed-previous-month: resolved or closed previous "month" aka 💰.
                                     all: all, duh
   -p PROBLEMS [PROBLEMS ...], --problems PROBLEMS [PROBLEMS ...]
                         the numbers of problems to be shown; multiple space-separated values are accepted
@@ -104,10 +105,11 @@ python -m prpr.main --mode all --student "Василиса Пупкина"
 python -m prpr.main --mode closed --from-date 2021-04-16 --to-date 2021-05-15
 ```
 
-Вывести закрытые в текущем учетном месяце работы:
+Вывести закрытые в текущем/предыдущем учетном месяце работы:
 
 ```bash
 python -m prpr.main --mode closed-this-month
+python -m prpr.main --mode closed-previous-month
 ```
 
 ## Как работают итерации
@@ -119,6 +121,10 @@ python -m prpr.main --mode closed-this-month
 со статусом `Открыт` или `Ревью`.
 
 ## История изменений
+
+### 2021-05-30
+
+Добавлен режим `closed-previous-month`.
 
 ### 2021-05-29
 
