@@ -33,6 +33,7 @@ def configure_filter_arguments(filters):
             open: in review or open
             closed: resolved or closed
             closed-this-month: resolved or closed this "month" aka 💰.
+            closed-previous-month: resolved or closed previous "month" aka 💰.
             all: all, duh""",
     )
     filters.add_argument(

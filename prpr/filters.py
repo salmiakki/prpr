@@ -4,12 +4,13 @@ import datetime as dt
 from enum import Enum, auto
 from typing import Any, Iterable, Optional, Union
 
+from dateutil.relativedelta import relativedelta
 from loguru import logger
 
 from prpr.date_utils import month_start_and_end
 from prpr.homework import Homework, Status
 
-DEFAULT_MONTH_START = 15
+DEFAULT_MONTH_START = 16
 
 OPEN_STATUSES = {Status.OPEN, Status.IN_REVIEW}
 CLOSED_STATUSES = {Status.RESOLVED, Status.CLOSED}
@@ -21,6 +22,7 @@ class Mode(Enum):
     OPEN = auto()
     CLOSED = auto()
     CLOSED_THIS_MONTH = auto()
+    CLOSED_PREVIOUS_MONTH = auto()
 
     def __str__(self):
         return self.name.lower().replace("_", "-")
@@ -65,13 +67,16 @@ def filter_homeworks(
         result = _filter_homeworks_by_status(homeworks, OPEN_STATUSES)
     elif mode == Mode.CLOSED:
         result = _filter_homeworks_by_status(homeworks, CLOSED_STATUSES)
-    elif mode == Mode.CLOSED_THIS_MONTH:
+    elif mode in (Mode.CLOSED_THIS_MONTH, Mode.CLOSED_PREVIOUS_MONTH):
         if from_date or to_date:
-            logger.warning(f"date filters are ignored for mode {Mode.CLOSED_THIS_MONTH} ⚠️")
+            logger.warning(f"date filters are ignored for mode {mode} ⚠️")
         result = _filter_homeworks_by_status(homeworks, CLOSED_STATUSES)
         month_start = config.get("month_start", DEFAULT_MONTH_START)
-        from_date, to_date = month_start_and_end(dt.date.today(), month_start=month_start)
-        logger.info(f"This 'month' is {from_date:%Y-%m-%d} -- {to_date:%Y-%m-%d}.")
+        day_in_month = dt.date.today()
+        if mode == Mode.CLOSED_PREVIOUS_MONTH:
+            day_in_month = day_in_month + relativedelta(months=-1)
+        from_date, to_date = month_start_and_end(day_in_month, month_start=month_start)
+        logger.info(f"Chosen 'month' is {from_date:%Y-%m-%d} -- {to_date:%Y-%m-%d}.")
     else:
         logger.error(f"{mode=}")
 
