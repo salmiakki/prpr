@@ -18,6 +18,7 @@ class Status(IntEnum):
     ON_THE_SIDE_OF_USER = 2
     RESOLVED = 3
     CLOSED = 4
+
     # If a new status is added, update Homework.pretty_status accordingly
 
     @staticmethod  # can't have class variables in Enums
@@ -37,6 +38,10 @@ class Status(IntEnum):
             return Status.UNKNOWN
 
 
+OPEN_STATUSES = {Status.OPEN, Status.IN_REVIEW}
+CLOSED_STATUSES = {Status.CLOSED, Status.RESOLVED}
+
+
 class Homework:
     SECONDS_PER_MINUTE = 60
     SECONDS_PER_HOUR = 3600
@@ -54,6 +59,7 @@ class Homework:
         description: str,
         number: int,  # the ordinal number in of all one's tickets sorted by issue key
         first: bool,
+        course: str,  # e.g. "backend-developer"
         transitions: Optional[list[StatusTransition]] = None,
     ):
         self.first = first  # TODO: remove
@@ -66,6 +72,7 @@ class Homework:
         self.cohort = cohort
         self.status = Status.from_string(status)
         self.issue_key = issue_key
+        self.course = course
         self._iteration: Optional[int] = StatusTransition.compute_iteration(transitions)
         self.last_opened: Optional[datetime] = StatusTransition.compute_last_opened(transitions)
 
@@ -73,7 +80,7 @@ class Homework:
     def iteration(self):
         if cached := self._iteration:
             return cached
-        if self.status in {Status.CLOSED, Status.RESOLVED}:
+        if self.resolved:
             return None
         # We could retrieve iterations here, lazily. I don't want to inject the client instance though.
         # Suggestions are welcome.
@@ -87,6 +94,14 @@ class Homework:
         if self.deadline is None:
             return None
         return f"{self.deadline:{self.DEADLINE_FORMAT}}"
+
+    @property
+    def resolved(self) -> bool:
+        return self.status in CLOSED_STATUSES
+
+    @property
+    def open_or_in_review(self) -> bool:
+        return self.status in OPEN_STATUSES
 
     @property
     def updated_string(self) -> Optional[str]:
@@ -145,14 +160,17 @@ class Homework:
     def _compute_deadline(
         status_updated: Optional[datetime], status: Status, last_opened: Optional[datetime] = None
     ) -> Optional[datetime]:
-        # TODO: handle IN_REVIEW homeworks (relies on iteration support)
         if status in {Status.OPEN, Status.IN_REVIEW}:
             if updated := (last_opened or status_updated):
                 return updated + timedelta(days=1)
         return None
 
-    def __repr__(self) -> str:
-        return f"no {self.number}: {self.student} {self.problem} ({self.status})"
+    def __str__(self) -> str:
+        if self.iteration:
+            problem = f"{self.problem}.{self.iteration}"
+        else:
+            problem = f"{self.problem}"
+        return f"{self.issue_key}, no {self.number}: {problem} {self.student} ({self.status.name})"
 
     @staticmethod
     def _extract_problem_and_student(summary) -> Tuple[int, str]:
@@ -169,6 +187,10 @@ class Homework:
         """E.g. "PCR-69105" -> 69105."""
         assert key.startswith("PCR-")
         return int(key.removeprefix("PCR-"))
+
+    @property
+    def issue_key_number(self) -> int:
+        return self.to_issue_key_number(self.issue_key)
 
     @property
     def revisor_url(self) -> str:

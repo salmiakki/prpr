@@ -1,6 +1,18 @@
 # Put this file in your home directory
 startrek_token: your_token_here
+
+# Stuff below is optional:
+
 month_start: 16  # Meaning closed tickets are grouped by May 16-June 15, June 16-July 16 and so on.
+
 component_suffixes:  # suffixes for cohort definition according to course
   backend-developer: ''
   python-developer-plus: '+'
+
+download:
+    directory: path/to/downloaded/homeworks
+    browser:
+        type: firefox  # Only Firefox is supported ATM
+        profile_path: path/to/firefox/profile"
+        # E.g. /Users/<username>/Library/Application Support/Firefox/Profiles/<something>.default-release
+        # For details on your profile location see https://support.mozilla.org/en-US/kb/profiles-where-firefox-stores-user-data

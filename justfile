@@ -32,3 +32,7 @@ mypy:
 
 precommit:
     pre-commit run --all-files
+
+down:
+    python3 -m prpr.main --down --verbose
+    tree /Users/leshapak/Yandex.Disk.localized/_praktikum/prpr2/downloaded
