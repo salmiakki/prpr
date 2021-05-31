@@ -10,7 +10,7 @@ DISPLAYED_TAIL_LENGTH = None
 
 
 def print_issue_table(homeworks: list[Homework], last=None):
-    table = setup_table(last)
+    table = setup_table(homeworks)
 
     start_from = -last if last else last
     for table_number, homework in enumerate(homeworks[start_from:], 1):
@@ -45,10 +45,11 @@ def compute_style(homework):  # TODO: consider moving to Homework
         return "dim"
 
 
-def setup_table(last: int) -> Table:
+def setup_table(homeworks: list[Homework]) -> Table:
     table = Table(title="My Praktikum Review Tickets", box=box.MINIMAL_HEAVY_HEAD)
     table.add_column("#", justify="right")
-    table.add_column("ticket")
+    min_ticket_width = max(len(hw.issue_url) for hw in homeworks)
+    table.add_column("ticket", min_width=min_ticket_width)
     table.add_column("no", justify="right")
     table.add_column("pr", justify="right")
     table.add_column("i")
