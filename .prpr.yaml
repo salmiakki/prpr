@@ -13,6 +13,6 @@ download:
     directory: path/to/downloaded/homeworks
     browser:
         type: firefox  # Only Firefox is supported ATM
-        profile_path: path/to/firefox/profile"
+        profile_path: path/to/firefox/profile  # Note: no trailing slash on *nix environments
         # E.g. /Users/<username>/Library/Application Support/Firefox/Profiles/<something>.default-release
         # For details on your profile location see https://support.mozilla.org/en-US/kb/profiles-where-firefox-stores-user-data
