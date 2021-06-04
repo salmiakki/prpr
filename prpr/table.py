@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from loguru import logger
 from rich import box
 from rich.console import Console
 from rich.table import Table
@@ -10,6 +11,9 @@ DISPLAYED_TAIL_LENGTH = None
 
 
 def print_issue_table(homeworks: list[Homework], last=None):
+    if not homeworks:
+        logger.warning("No homeworks for chosen filter combination.")
+        return
     table = setup_table(homeworks)
 
     start_from = -last if last else last
@@ -48,7 +52,7 @@ def compute_style(homework):  # TODO: consider moving to Homework
 def setup_table(homeworks: list[Homework]) -> Table:
     table = Table(title="My Praktikum Review Tickets", box=box.MINIMAL_HEAVY_HEAD)
     table.add_column("#", justify="right")
-    min_ticket_width = max(len(hw.issue_url) for hw in homeworks)
+    min_ticket_width = max(len(hw.issue_url) for hw in homeworks) if homeworks else None
     table.add_column("ticket", min_width=min_ticket_width)
     table.add_column("no", justify="right")
     table.add_column("pr", justify="right")
