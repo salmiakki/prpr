@@ -1,11 +1,13 @@
 import os
 import re
 import sys
+import zipfile
 from pathlib import Path
 from typing import Optional
 
 import requests
 from loguru import logger
+from rich import print as rprint
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from transliterate import translit
@@ -28,10 +30,10 @@ def download(homework: Homework, config, headless=False):
     urls = get_zip_urls(driver, homework.revisor_url)
 
     logger.debug(f"Got {len(urls)} urls:")
-    for i, url in enumerate(urls, 1):
-        logger.debug(f"{i}: {url}")
+    for iteration, url in enumerate(urls, 1):
+        logger.debug(f"{iteration}: {url}")
 
-        download_zip(url, homework_directory)
+        download_zip(url, homework_directory, iteration, homework)
     return None
 
 
@@ -81,7 +83,7 @@ def _extract_filename(url: str) -> str:
     return url.rsplit("/")[-1]
 
 
-def download_zip(url: str, destination_directory: Path) -> Path:
+def download_zip(url: str, destination_directory: Path, iteration: int, homework: Homework) -> Path:
     filename = _extract_filename(url)
     logger.debug(f"{url=} -> {filename=}")
 
@@ -89,11 +91,13 @@ def download_zip(url: str, destination_directory: Path) -> Path:
     logger.debug(f"full path = {str(full_path)}")
     if full_path.exists():  # TODO: add force download
         logger.info(f"{str(full_path)} exists, skipping.")
+        unzip_homework_file(full_path, iteration, homework)
         return full_path
     r = requests.get(url, allow_redirects=True)  # TODO: add retries
     with open(full_path, "wb") as f:
         f.write(r.content)
     logger.info(f"Written to {full_path}.")
+    unzip_homework_file(full_path, iteration, homework)
     return full_path
 
 
@@ -148,3 +152,29 @@ def extract_zip_urls(page_source: str, revisor_url: str) -> Optional[str]:
         return sorted({m.replace(r"\u002F", "/") for m in ms})
     logger.error("Failed to extract zip urls from {} 😿", revisor_url)
     return []
+
+
+def unzip_homework_file(homework_zip: Path, iteration: int, homework: Homework) -> Path:
+    homework_directory = homework_zip.parent
+    assert homework_zip.suffixes == [".zip"]
+    version_id = _extract_version_id(homework_zip.name)
+    iteration_directory = homework_directory / f"it_{iteration:02d}_{version_id}"
+    logger.info("{}", iteration_directory)
+    if iteration_directory.exists():
+        logger.info(f"Target {iteration_directory.relative_to(homework_directory.parent)} exists")
+        return iteration_directory
+    else:
+        zipfile.ZipFile(homework_zip).extractall(path=iteration_directory)
+        rprint(f"Fetched [bold]{iteration_directory.absolute()}[/bold] for [bold]{homework}[/bold].")
+        return iteration_directory
+
+
+def _extract_version_id(homework_zip_filename: str) -> str:
+    if m := re.search(r".*?_(?P<id>\d+).zip", homework_zip_filename):
+        group_dict = m.groupdict()
+        logger.debug("{} {} {}", homework_zip_filename, group_dict, group_dict["id"])
+        return group_dict["id"]
+
+
+# TODO: extract reusable client with batch mode
+# TODO: add warnings for multiple versions for an iteration
