@@ -47,7 +47,7 @@ python3 -m prpr.main --help
 ```
 
 ```
-usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month,closed-previous-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-c COHORTS [COHORTS ...]] [-f FROM_DATE] [-t TO_DATE] [-o] [-d] [--head] [-v]
+usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month,closed-previous-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-c COHORTS [COHORTS ...]] [-f FROM_DATE] [-t TO_DATE] [-o] [-d] [--head] [-v] [--post-process]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -80,6 +80,9 @@ filters:
 download:
   -d, --download
   --head                download with visible browser window (default is headless, i.e. the window is hidden)
+
+process:
+  --post-process
 ```
 
 ### Примеры использования опций запуска
@@ -153,6 +156,10 @@ download:
 
 ## История изменений
 
+### 2021-06-09
+
+* Добавлен пост-процессинг aka «диффы» 🥳
+
 ### 2021-06-04
 
 * Архивы распакуются при скачке.
@@ -195,8 +202,6 @@ download:
 1. Настройки и украшения
 1. Создать пакет cо скриптом запуска
 1. Уведомления
-1. Запуск сторонних инструментов (линтеры итп)
-1. Дифф
 1. Статистика
 1. Тесты 😹
 1. Кэширование

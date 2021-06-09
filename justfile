@@ -1,5 +1,17 @@
 # What's a justfile? It's like makefile, but a joy to use. See https://github.com/casey/just
 
+down:
+    python3 -m prpr.main --down --verbose
+#    tree /Users/leshapak/Yandex.Disk.localized/_praktikum/downloaded -L 4
+
+process:
+    python3 -m prpr.main --down -vv --head --post-process
+
+pr PR:
+    python3 -m prpr.main --down -vv --head --post-process --pr {{PR}}
+
+alias check := verbose
+
 verbose:
     python3 -m prpr.main --verbose
 
@@ -11,6 +23,9 @@ all:
 
 open:
     python3 -m prpr.main --verbose --open
+
+alias m := month
+alias this := month
 
 month:
     python3 -m prpr.main --mode closed-this-month --verbose
@@ -33,6 +48,4 @@ mypy:
 precommit:
     pre-commit run --all-files
 
-down:
-    python3 -m prpr.main --down --verbose
-    tree /Users/leshapak/Yandex.Disk.localized/_praktikum/prpr2/downloaded
+alias d := down

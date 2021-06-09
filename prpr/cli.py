@@ -25,6 +25,8 @@ def configure_arg_parser():
         action="count",
         default=0,
     )
+    process_options = arg_parser.add_argument_group("process")
+    configure_process_arguments(process_options)
     return arg_parser
 
 
@@ -91,6 +93,14 @@ def configure_download_arguments(download_options):
     download_options.add_argument(
         "--head",
         help="download with visible browser window (default is headless, i.e. the window is hidden)",
+        action="store_true",
+        default=False,
+    )
+
+
+def configure_process_arguments(process_options):
+    process_options.add_argument(
+        "--post-process",
         action="store_true",
         default=False,
     )
