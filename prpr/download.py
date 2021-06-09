@@ -2,15 +2,16 @@ import os
 import re
 import sys
 import zipfile
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import requests
 from loguru import logger
 from rich import print as rprint
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
-from transliterate import translit
+from transliterate import slugify
 
 from prpr.homework import Homework
 
@@ -30,11 +31,12 @@ def download(homework: Homework, config, headless=False):
     urls = get_zip_urls(driver, homework.revisor_url)
 
     logger.debug(f"Got {len(urls)} urls:")
+    results = []
     for iteration, url in enumerate(urls, 1):
         logger.debug(f"{iteration}: {url}")
 
-        download_zip(url, homework_directory, iteration, homework)
-    return None
+        results.append(download_zip(url, homework_directory, iteration, homework))
+    return results
 
 
 def get_homework_directory(homework: Homework, download_config) -> Path:
@@ -75,7 +77,7 @@ def get_problem_directory(homework: Homework, course_directory: Path) -> Path:
 
 
 def build_directory_name(hw: Homework) -> str:
-    name = translit(hw.student.rsplit(maxsplit=3)[-2].lower(), "ru", reversed=True)
+    name = slugify(hw.student.rsplit(maxsplit=3)[-2].lower(), "ru")
     return f"{hw.issue_key_number}_{name}"
 
 
@@ -83,22 +85,26 @@ def _extract_filename(url: str) -> str:
     return url.rsplit("/")[-1]
 
 
-def download_zip(url: str, destination_directory: Path, iteration: int, homework: Homework) -> Path:
+def download_zip(url: str, homework_directory: Path, iteration: int, homework: Homework) -> Tuple[Path, Path, int]:
     filename = _extract_filename(url)
     logger.debug(f"{url=} -> {filename=}")
 
-    full_path = destination_directory / filename
-    logger.debug(f"full path = {str(full_path)}")
-    if full_path.exists():  # TODO: add force download
-        logger.info(f"{str(full_path)} exists, skipping.")
-        unzip_homework_file(full_path, iteration, homework)
-        return full_path
-    r = requests.get(url, allow_redirects=True)  # TODO: add retries
-    with open(full_path, "wb") as f:
-        f.write(r.content)
-    logger.info(f"Written to {full_path}.")
-    unzip_homework_file(full_path, iteration, homework)
-    return full_path
+    zip_full_path = homework_directory / filename
+    if zip_full_path.exists():  # TODO: add force download
+        logger.info(f"{str(zip_full_path)} exists, skipping.")
+    else:
+        r = requests.get(url, allow_redirects=True)  # TODO: add retries
+        with open(zip_full_path, "wb") as f:
+            f.write(r.content)
+        logger.info(f"Written to {zip_full_path}.")
+    iteration_directory, version_id = unzip_homework_file(zip_full_path, iteration, homework)
+    return DownloadedResult(
+        zipfile=zip_full_path,
+        iteration_directory=iteration_directory,
+        iteration=iteration,
+        homework_directory=homework_directory,
+        id=version_id,
+    )
 
 
 def configure_driver(download_config, headless=False):
@@ -154,19 +160,17 @@ def extract_zip_urls(page_source: str, revisor_url: str) -> Optional[str]:
     return []
 
 
-def unzip_homework_file(homework_zip: Path, iteration: int, homework: Homework) -> Path:
+def unzip_homework_file(homework_zip: Path, iteration: int, homework: Homework) -> Tuple[Path, str]:
     homework_directory = homework_zip.parent
     assert homework_zip.suffixes == [".zip"]
     version_id = _extract_version_id(homework_zip.name)
     iteration_directory = homework_directory / f"it_{iteration:02d}_{version_id}"
-    logger.info("{}", iteration_directory)
     if iteration_directory.exists():
-        logger.info(f"Target {iteration_directory.relative_to(homework_directory.parent)} exists")
-        return iteration_directory
+        logger.info(f"Target {iteration_directory} exists")
     else:
         zipfile.ZipFile(homework_zip).extractall(path=iteration_directory)
         rprint(f"Fetched [bold]{iteration_directory.absolute()}[/bold] for [bold]{homework}[/bold].")
-        return iteration_directory
+    return iteration_directory, version_id
 
 
 def _extract_version_id(homework_zip_filename: str) -> str:
@@ -178,3 +182,20 @@ def _extract_version_id(homework_zip_filename: str) -> str:
 
 # TODO: extract reusable client with batch mode
 # TODO: add warnings for multiple versions for an iteration
+
+
+@dataclass
+class DownloadedResult:
+    zipfile: Path
+    iteration_directory: Path
+    homework_directory: Path
+    iteration: int
+    id: str
+
+    @property
+    def zipfile_relative_to_homework_directory(self):
+        return self.zipfile.relative_to(self.homework_directory)
+
+    @property
+    def iteration_directory_relative_to_homework_directory(self):
+        return self.iteration_directory.relative_to(self.homework_directory)

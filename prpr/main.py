@@ -11,6 +11,7 @@ from prpr.config import get_config
 from prpr.download import download
 from prpr.filters import filter_homeworks
 from prpr.homework import Homework
+from prpr.post_process import post_process_homework
 from prpr.startrack_client import get_startack_client
 from prpr.table import DISPLAYED_TAIL_LENGTH, print_issue_table
 
@@ -81,7 +82,11 @@ def main():
         if to_download := [hw for hw in sorted_homeworks if hw.open_or_in_review]:
             for d in to_download[:1]:  # TODO: Configure the number
                 logger.info(f"Downloading {d}...")
-                download(d, config, headless=not args.head)  # TODO: This is ugly, refactor
+                results = download(d, config, headless=not args.head)  # TODO: This is ugly, refactor
+                if args.post_process and results:
+                    logger.info(f"Post-processing {d}...")
+                    post_process_homework(results, d, config=config)
+
         else:
             logger.warning("There's nothing to download. Consider relaxing the filters if that's not what you expect.")
 

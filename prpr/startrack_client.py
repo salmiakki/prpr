@@ -31,6 +31,7 @@ class PraktikTrackerClient(TrackerClient):
     def get_status_history(self, issue_key: str, issue_status: str) -> Optional[list[StatusTransition]]:
         if issue_status not in {"open", "inReview"}:  # TODO: make configurable
             return None
+        logger.debug(f"Fetching status history for {issue_key}")
         try:
             changes = requests.get(
                 f"https://st-api.yandex-team.ru/v2/issues/{issue_key}/changelog",
