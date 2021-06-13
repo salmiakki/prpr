@@ -107,7 +107,7 @@ def main():
         else:
             logger.warning("There's nothing to download. Consider relaxing the filters if that's not what you expect.")
     else:
-        if args.post_process_homework:
+        if args.post_process:
             logger.warning("{} is ignored without {} at the moment.", POST_PROCESS, DOWNLOAD)
         if args.interactive:
             logger.warning("{} is ignored without {} at the moment", INTERACTIVE, DOWNLOAD)
