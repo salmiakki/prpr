@@ -213,7 +213,7 @@ process:
             # it_last_zip and it_last_zip_ are similar, but point to zip files,
             # it_prev, it_prev_ and so on refer to the corresponding counterparts for the previous iteration.
             # if it_prev, it_prev_... are present the step is skipped for the first iteration.
-            diff: "cd {hw} && diff -r -y -N {it_prev_} {it_last_}"
+            diff: "cd {hw} && diff -r -N {it_prev_} {it_last_}"
             # Check out https://github.com/jeffkaufman/icdiff for a better alternative.
     courses:
         backend-developer:
