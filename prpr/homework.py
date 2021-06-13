@@ -146,7 +146,7 @@ class Homework:
 
     @property
     def pretty_status(self) -> str:
-        if self.deadline_missed:
+        if self.deadline_missed and self.status == Status.OPEN:
             return "🙀"
         return {
             Status.IN_REVIEW: "🔎",
