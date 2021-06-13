@@ -3,6 +3,10 @@ import datetime as dt
 
 from prpr.filters import Mode
 
+DOWNLOAD = "--download"
+POST_PROCESS = "--post-process"
+INTERACTIVE = "--interactive"
+
 
 def configure_arg_parser():
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -86,7 +90,7 @@ def configure_filter_arguments(filters):
 def configure_download_arguments(download_options):
     download_options.add_argument(
         "-d",
-        "--download",  # TODO: Add help messages when we have all the options we want
+        DOWNLOAD,  # TODO: Add help messages when we have all the options we want
         action="store_true",
         default=False,
     )
@@ -96,11 +100,18 @@ def configure_download_arguments(download_options):
         action="store_true",
         default=False,
     )
+    download_options.add_argument(
+        "-i",
+        INTERACTIVE,
+        help="choose which homework to download interactively",
+        action="store_true",
+        default=False,
+    )
 
 
 def configure_process_arguments(process_options):
     process_options.add_argument(
-        "--post-process",
+        POST_PROCESS,
         action="store_true",
         default=False,
     )
