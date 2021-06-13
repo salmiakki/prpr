@@ -4,9 +4,10 @@ from __future__ import annotations
 import sys
 import webbrowser
 
+import questionary
 from loguru import logger
 
-from prpr.cli import configure_arg_parser
+from prpr.cli import DOWNLOAD, INTERACTIVE, POST_PROCESS, configure_arg_parser
 from prpr.config import get_config
 from prpr.download import download
 from prpr.filters import filter_homeworks
@@ -31,6 +32,20 @@ def get_cohort(cohort, components, config):
 
 def sort_homeworks(homeworks: list[Homework]) -> list[Homework]:
     return sorted(homeworks, key=Homework.order_key)
+
+
+def choose_to_download(to_download: list[Homework]) -> list[Homework]:
+    if not to_download:
+        return []
+    if len(to_download) == 1:
+        logger.debug("Just one homework to be choose from, choosing it.")
+        return to_download
+    hw_strings = [str(hw) for hw in to_download]
+    chosen_title = questionary.select(
+        "Which homework do you want to download?",
+        choices=hw_strings,
+    ).ask()
+    return [hw for hw in to_download if str(hw) == chosen_title]
 
 
 def main():
@@ -80,6 +95,8 @@ def main():
 
     if args.download:
         if to_download := [hw for hw in sorted_homeworks if hw.open_or_in_review]:
+            if args.interactive:
+                to_download = choose_to_download(to_download)
             for d in to_download[:1]:  # TODO: Configure the number
                 logger.info(f"Downloading {d}...")
                 results = download(d, config, headless=not args.head)  # TODO: This is ugly, refactor
@@ -89,6 +106,11 @@ def main():
 
         else:
             logger.warning("There's nothing to download. Consider relaxing the filters if that's not what you expect.")
+    else:
+        if args.post_process_homework:
+            logger.warning("{} is ignored without {} at the moment.", POST_PROCESS, DOWNLOAD)
+        if args.interactive:
+            logger.warning("{} is ignored without {} at the moment", INTERACTIVE, DOWNLOAD)
 
 
 def extract_course(issue):

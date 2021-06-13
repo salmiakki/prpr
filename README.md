@@ -47,7 +47,7 @@ python3 -m prpr.main --help
 ```
 
 ```
-usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month,closed-previous-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-c COHORTS [COHORTS ...]] [-f FROM_DATE] [-t TO_DATE] [-o] [-d] [--head] [-v] [--post-process]
+usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month,closed-previous-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-c COHORTS [COHORTS ...]] [-f FROM_DATE] [-t TO_DATE] [-o] [-d] [--head] [-i] [-v] [--post-process]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -80,6 +80,7 @@ filters:
 download:
   -d, --download
   --head                download with visible browser window (default is headless, i.e. the window is hidden)
+  -i, --interactive     choose which homework to download interactively
 
 process:
   --post-process
@@ -155,6 +156,10 @@ download:
 будет создана автоматически.
 
 ## История изменений
+
+### 2021-06-13
+
+* Домашнюю работу для скачивания можно выбрать интерактивно: `-i/--interactive`.
 
 ### 2021-06-09
 
