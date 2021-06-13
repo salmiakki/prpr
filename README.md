@@ -10,8 +10,9 @@
 
 ### Dotfile
 
-В `~/.prpr.yaml` нужно положить токен доступа к Стартреку,
-определить первое число для начала месяца расчёта зарплаты,
+В `~/.prpr.yaml` нужно положить токен доступа к Стартреку.
+
+Также можно определить первое число для начала месяца расчёта зарплаты и
 определить суффиксы для уточнения когорт (в зависимости от курса):
 
 ```yaml
@@ -88,6 +89,12 @@ process:
 
 ### Примеры использования опций запуска
 
+Скачать и обработать архив с интерактивным выбором работы, открыть браузер, логирование уровня `INFO` (это рекомендованный вариант запуска):
+
+```bash
+python -m prpr.main -v --download --post-process --interactive --open
+```
+
 Вывести только 1 и 2 проекты для студентов 16 когорты и 1 когорты "Питон+":
 
 ```bash
@@ -104,6 +111,12 @@ python -m prpr.main --no 100 --open
 
 ```bash
 python -m prpr.main --down
+```
+
+Скачать и обработать архив с работой:
+
+```bash
+python -m prpr.main --down --post-process
 ```
 
 Вывести все работы по конкретному студенту (емейл, имя, фамилия):
@@ -125,6 +138,8 @@ python -m prpr.main --mode closed-this-month
 python -m prpr.main --mode closed-previous-month
 ```
 
+Достаточно указывать уникальный префикс ключа: можно `--down`, а не `--download`.
+
 ## Как работают итерации
 
 Номер итерации равен количеству переходов в статус `Открыт`.
@@ -135,7 +150,7 @@ python -m prpr.main --mode closed-previous-month
 
 ## Как настроить скачку
 
-1. [Установить драйвер Selenium](https://selenium-python.readthedocs.io/installation.html#drivers) для Firefox.
+1. Нужно [установить драйвер Selenium](https://selenium-python.readthedocs.io/installation.html#drivers) для Firefox.
 1. До Ревизора должен быть доступ (VPN, 2FA etc).
 1. Нужно указать в `.prpr` [профиль Firefox](https://support.mozilla.org/en-US/kb/profiles-where-firefox-stores-user-data) с залогином в Ревизоре.
 
@@ -154,6 +169,63 @@ download:
 там кликается нужная вкладка. Из страницы вынимаются ссылки на zip-файлы. Недостающие
 архивы скачиваются в директорию, указанную в дотфайле. Нужная структура поддиректорий
 будет создана автоматически.
+
+## Как настроить обработку
+
+В `.prpr` нужно добавить секцию `process`, в ней можно настроить
+шаги для обработки.
+
+Шаги -- шаблоны, в которых заполняются некоторые переменные. Самая интересная
+переменная -- `it_last`, она будет заменена  на абсолютный путь до директории с последней
+версией последней итерации (а `it_prev` -- для предпоследней). Полный список
+переменных доступен в `.prpr.yaml` (отрывок см. ниже). Для `it_last` можно запускать
+проверки (как стандартные линтеры, так и свои), для `it_prev` и `it_last` -- строить
+диффы.
+
+Заполненный шаблон подается на `process.runner`. Если `runner` --
+`["bash", "-c"]`, будут работать стандартные возможности, такие как перенаправления и пайпы.
+
+* Шаги из `process.default` будут применены всегда.
+* При совпадении имени курса -- шаги из `process.courses.<course_name>.default`.
+* При совпадении имени курса и номера задачи -- шаги из `process.courses.<course_name>.problems.<problem_number>`.
+* Для первой итерации пропускаются шаги, которым нужна предыдущая итерация.
+
+Вывод шагов сохраняется в директорию домашней работы. Имена шагов должны быть допустимыми
+именами файлов.
+
+Пример:
+
+```yaml
+# .prpr fragment
+process:
+    # Which steps are applied?
+    # 1. The steps in process.default
+    # 2. If the course name matches, the steps in process.courses.<course_name>.default
+    # 3. If the problem number matches as well, the steps in process.courses.<course_name>.problems.<problem_number>
+    runner: ["bash", "-c"]
+    default:
+        steps:
+            # The following variables are supported:
+            #
+            # hw -- the absolute path of the homework directory,
+            # it_last -- the absolute path of the last iteration directory,
+            # it_last_ -- the path of the last iteration directory relative to the homework directory,
+            # it_last_zip and it_last_zip_ are similar, but point to zip files,
+            # it_prev, it_prev_ and so on refer to the corresponding counterparts for the previous iteration.
+            # if it_prev, it_prev_... are present the step is skipped for the first iteration.
+            diff: "cd {hw} && diff -r -y -N {it_prev_} {it_last_}"
+            # Check out https://github.com/jeffkaufman/icdiff for a better alternative.
+    courses:
+        backend-developer:
+            default:
+                steps:
+                    pycodestyle: "/usr/local/bin/pycodestyle {it_last} | grep -v -e 'master/tests/' -e migrations -e settings"
+            problems:
+                2:  # communities
+                    steps:
+                        # This is an example of a problem-specific check:
+                        find_set_null: "cd {it_last} && grep -r SET_NULL ."
+```
 
 ## История изменений
 

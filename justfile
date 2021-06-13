@@ -1,11 +1,10 @@
 # What's a justfile? It's like makefile, but a joy to use. See https://github.com/casey/just
 
 down:
-    python3 -m prpr.main --down --verbose
-#    tree /Users/leshapak/Yandex.Disk.localized/_praktikum/downloaded -L 4
+    python3 -m prpr.main --down --verbose --interactive
 
 process:
-    python3 -m prpr.main --down -vv --head --post-process
+    python3 -m prpr.main --down -vv --head --post-process --interactive
 
 pr PR:
     python3 -m prpr.main --down -vv --head --post-process --pr {{PR}}

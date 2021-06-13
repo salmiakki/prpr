@@ -26,13 +26,13 @@ process:
         steps:
             # The following variables are supported:
             #
-            # hw -- the absolute path of the homework directory
-            # it_last -- the absolute path of the last iteration directory
-            # it_last_ -- the path of the last iteration directory relative to the homework directory
-            # it_last_zip and it_last_zip_ are similar, but point to zip files
-            # it_prev and friends refer to the corresponding counterparts for the previous iteration
-            # if it_prev if present the step is skipped for the first iteration
-            diff: "cd {hw} && diff -r -N {it_prev_} {it_last_}"
+            # hw -- the absolute path of the homework directory,
+            # it_last -- the absolute path of the last iteration directory,
+            # it_last_ -- the path of the last iteration directory relative to the homework directory,
+            # it_last_zip and it_last_zip_ are similar, but point to zip files,
+            # it_prev, it_prev_ and so on refer to the corresponding counterparts for the previous iteration.
+            # if it_prev, it_prev_... are present the step is skipped for the first iteration.
+            diff: "cd {hw} && diff -r -y -N {it_prev_} {it_last_}"
             # Check out https://github.com/jeffkaufman/icdiff for a better alternative.
     courses:
         backend-developer:
@@ -40,6 +40,7 @@ process:
                 steps:
                     pycodestyle: "/usr/local/bin/pycodestyle {it_last} | grep -v -e 'master/tests/' -e migrations -e settings"
             problems:
-                2:
+                2:  # communities
                     steps:
+                        # This is an example of a problem-specific check:
                         find_set_null: "cd {it_last} && grep -r SET_NULL ."
