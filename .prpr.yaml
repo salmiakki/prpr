@@ -34,6 +34,7 @@ process:
             # if it_prev, it_prev_... are present the step is skipped for the first iteration.
             diff: "cd {hw} && diff -r -N {it_prev_} {it_last_}"
             # Check out https://github.com/jeffkaufman/icdiff for a better alternative.
+            # icdiff: "cd {hw} && icdiff -r -N {it_prev_} {it_last_}"
     courses:
         backend-developer:
             default:
