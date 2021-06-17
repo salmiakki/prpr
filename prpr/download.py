@@ -155,7 +155,8 @@ def get_zip_urls(driver, revisor_url: str) -> list[str]:
 
 def extract_zip_urls(page_source: str, revisor_url: str) -> Optional[str]:
     if ms := re.findall(r"\"homework_url\":\s?\"(?P<url>[\w\\\-\_:\u002F\.]+\.zip)\"", page_source):
-        return sorted({m.replace(r"\u002F", "/") for m in ms})
+        urls = {m.replace(r"\u002F", "/") for m in ms}
+        return sorted(urls, key=_extract_version_id)
     logger.error("Failed to extract zip urls from {} 😿", revisor_url)
     return []
 
