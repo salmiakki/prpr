@@ -162,8 +162,8 @@ def extract_zip_urls(page_source: str, revisor_url: str) -> Optional[str]:
 
 
 def unzip_homework_file(homework_zip: Path, iteration: int, homework: Homework) -> Tuple[Path, str]:
+    assert homework_zip.suffix == ".zip", f"Unexpected extension {homework_zip.suffix} for {homework_zip} 😿"
     homework_directory = homework_zip.parent
-    assert homework_zip.suffixes == [".zip"]
     version_id = _extract_version_id(homework_zip.name)
     iteration_directory = homework_directory / f"it_{iteration:02d}_{version_id}"
     if iteration_directory.exists():
