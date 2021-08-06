@@ -7,7 +7,7 @@ from enum import IntEnum
 from typing import Optional, Tuple
 
 from loguru import logger
-from slugify import slugify
+from transliterate import slugify
 
 from prpr.date_utils import LOCAL_TIMEZONE, parse_datetime
 
