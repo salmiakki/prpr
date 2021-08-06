@@ -48,7 +48,7 @@ python3 -m prpr.main --help
 ```
 
 ```
-usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month,closed-previous-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-c COHORTS [COHORTS ...]] [-f FROM_DATE] [-t TO_DATE] [-o] [-d] [--head] [-i] [-v] [--post-process]
+usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month,closed-previous-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-c COHORTS [COHORTS ...]] [-f FROM_DATE] [-t TO_DATE] [-o] [-d [{one,all,interactive}]] [--head] [-i] [-v] [--post-process]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -79,9 +79,13 @@ filters:
                         the end date (YYYY-MM-DD)
 
 download:
-  -d, --download
+  -d [{one,all,interactive}], --download [{one,all,interactive}]
+                        download mode
+                                    one: first by deadline,
+                                    interactive: a single
+                                    all: all, duh
   --head                download with visible browser window (default is headless, i.e. the window is hidden)
-  -i, --interactive     choose which homework to download interactively
+  -i, --interactive     choose which homework to download interactively (deprecated)
 
 process:
   --post-process
@@ -92,8 +96,15 @@ process:
 Скачать и обработать архив с интерактивным выбором работы, открыть браузер, логирование уровня `INFO` (это рекомендованный вариант запуска):
 
 ```bash
-python -m prpr.main -v --download --post-process --interactive --open
+python -m prpr.main -v --download interactive --post-process --open
 ```
+
+Скачать и обработать все работы, открыть браузер:
+
+```bash
+python -m prpr.main -v --download all --post-process --open
+```
+
 
 Вывести только 1 и 2 проекты для студентов 16 когорты и 1 когорты "Питон+":
 
@@ -229,6 +240,11 @@ process:
 ```
 
 ## История изменений
+
+### 2021-08-6
+
+* Добавлен режим `--download all`.
+* Вместо `--interactive` рекомендуется использовать `--download interactive`.
 
 ### 2021-06-21
 

@@ -1,17 +1,20 @@
+from __future__ import annotations
+
 import os
 import re
 import sys
 import zipfile
 from dataclasses import dataclass
+from enum import Enum, auto
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Iterable, Optional, Tuple
 
 import requests
 from loguru import logger
+from pyfiglet import Figlet
 from rich import print as rprint
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
-from transliterate import slugify
 
 from prpr.homework import Homework
 
@@ -20,12 +23,33 @@ DRIVER_TIMEOUT = 110
 YOUR_DESCRIPTION_HERE = "your_description_here"
 
 
+class DownloadMode(Enum):
+    ONE = auto()
+    ALL = auto()
+    # TODAY = auto() TODO: add customizable day end
+    INTERACTIVE = auto()
+
+    def __str__(self):
+        return self.name.lower().replace("_", "-")
+
+    def __repr__(self):
+        return str(self)
+
+    @staticmethod
+    def from_string(mode: str) -> DownloadMode:
+        try:
+            return DownloadMode[mode.upper().replace("-", "_")]
+        except KeyError:
+            logger.error(f"Unexpected PostProcessMode mode: '{mode}' 😿")
+            return mode
+
+
 def download(homework: Homework, config, headless=False):
     logger.debug(homework)
     download_config = config.get("download", {})
     logger.debug(f"{download_config=}")
 
-    homework_directory = get_homework_directory(homework, download_config)
+    homework_directory = _get_homework_directory(homework, download_config)
 
     driver = configure_driver(download_config, headless=headless)
     urls = get_zip_urls(driver, homework.revisor_url)
@@ -34,12 +58,40 @@ def download(homework: Homework, config, headless=False):
     results = []
     for iteration, url in enumerate(urls, 1):
         logger.debug(f"{iteration}: {url}")
-
-        results.append(download_zip(url, homework_directory, iteration, homework))
+        results.append(_download_zip(url, homework_directory, iteration, homework))
     return results
 
 
-def get_homework_directory(homework: Homework, download_config) -> Path:
+class BatchDownloader:
+    def __init__(self, config, headless=True):
+        self.download_config = config.get("download", {})
+        self.driver = configure_driver(self.download_config, headless=headless)
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def download_batch(self, homeworks: Iterable[Homework], print_banner=True):
+        with self.driver as driver:
+            for homework in homeworks:
+                if print_banner and len(homeworks) > 1:
+                    _print_banner(homework)
+                logger.info(f"Downloading {homework}...")
+                homework_directory = _get_homework_directory(homework, self.download_config)
+                urls = _get_zip_urls(driver, homework.revisor_url)
+                logger.debug(f"Got {len(urls)} urls:")
+                results = []
+                for iteration, url in enumerate(urls, 1):
+                    logger.debug(f"{iteration}: {url}")
+
+                    results.append(_download_zip(url, homework_directory, iteration, homework))
+                yield results
+
+
+def _get_homework_directory(homework: Homework, download_config) -> Path:
     if not (root_directory := download_config.get("directory")):
         logger.error("Download directory not set in .prpr 😿")
         sys.exit(1)
@@ -49,15 +101,15 @@ def get_homework_directory(homework: Homework, download_config) -> Path:
     if not course_directory.exists():
         logger.warning(f"{course_directory} doesn't exist, creating now...")
         course_directory.mkdir(parents=True)
-    problem_directory = get_problem_directory(homework, course_directory)
-    homework_directory = problem_directory / build_directory_name(homework)
+    problem_directory = _get_problem_directory(homework, course_directory)
+    homework_directory = problem_directory / _build_directory_name(homework)
     if not homework_directory.exists():
         logger.warning(f"{homework_directory} doesn't exist, creating now...")
         homework_directory.mkdir(parents=True)
     return homework_directory
 
 
-def get_problem_directory(homework: Homework, course_directory: Path) -> Path:
+def _get_problem_directory(homework: Homework, course_directory: Path) -> Path:
     problem_directory_name_prefix = f"hw_{homework.problem:02d}_"
     for p in course_directory.iterdir():
         if p.is_dir() and p.name.startswith(problem_directory_name_prefix):
@@ -76,16 +128,15 @@ def get_problem_directory(homework: Homework, course_directory: Path) -> Path:
     return problem_directory
 
 
-def build_directory_name(hw: Homework) -> str:
-    name = slugify(hw.student.rsplit(maxsplit=3)[-2].lower(), "ru")
-    return f"{hw.issue_key_number}_{name}"
+def _build_directory_name(hw: Homework) -> str:
+    return f"{hw.issue_key_number}_{hw.second_name_slug}"
 
 
 def _extract_filename(url: str) -> str:
     return url.rsplit("/")[-1]
 
 
-def download_zip(url: str, homework_directory: Path, iteration: int, homework: Homework) -> Tuple[Path, Path, int]:
+def _download_zip(url: str, homework_directory: Path, iteration: int, homework: Homework) -> DownloadedResult:
     filename = _extract_filename(url)
     logger.debug(f"{url=} -> {filename=}")
 
@@ -97,7 +148,7 @@ def download_zip(url: str, homework_directory: Path, iteration: int, homework: H
         with open(zip_full_path, "wb") as f:
             f.write(r.content)
         logger.info(f"Written to {zip_full_path}.")
-    iteration_directory, version_id = unzip_homework_file(zip_full_path, iteration, homework)
+    iteration_directory, version_id = _unzip_homework_file(zip_full_path, iteration, homework)
     return DownloadedResult(
         zipfile=zip_full_path,
         iteration_directory=iteration_directory,
@@ -132,28 +183,32 @@ def _configure_firefox_driver(browser_settings, headless=False):
 def get_zip_urls(driver, revisor_url: str) -> list[str]:
     logger.debug(f"Fetching from {revisor_url}...")
     with driver:
-        page_load_timeout = PAGE_LOAD_TIMEOUT
-        driver.maximize_window()
-        driver.set_page_load_timeout(page_load_timeout)
-        driver.get(revisor_url)
-        history_tab_xpath = "//span[text()='История']"
+        return _get_zip_urls(driver, revisor_url)
+
+
+def _get_zip_urls(driver, revisor_url: str) -> list[str]:
+    page_load_timeout = PAGE_LOAD_TIMEOUT
+    driver.maximize_window()
+    driver.set_page_load_timeout(page_load_timeout)
+    driver.get(revisor_url)
+    history_tab_xpath = "//span[text()='История']"
+    try:
+        element = driver.find_element_by_xpath(history_tab_xpath)
+    except NoSuchElementException:
         try:
-            element = driver.find_element_by_xpath(history_tab_xpath)
+            code_review_tab_xpath = "//span[text()='Код-ревью']"
+            element = driver.find_element_by_xpath(code_review_tab_xpath)
         except NoSuchElementException:
-            try:
-                code_review_tab_xpath = "//span[text()='Код-ревью']"
-                element = driver.find_element_by_xpath(code_review_tab_xpath)
-            except NoSuchElementException:
-                logger.error(
-                    f"Failed to find element with {code_review_tab_xpath=}. Are you logged in? Is the VPN connected?"
-                )
-                sys.exit(1)
-        element.click()
-        driver.implicitly_wait(DRIVER_TIMEOUT)
-        return extract_zip_urls(driver.page_source, revisor_url)
+            logger.error(
+                f"Failed to find element with {code_review_tab_xpath=}. Are you logged in? Is the VPN connected?"
+            )
+            sys.exit(1)
+    element.click()
+    driver.implicitly_wait(DRIVER_TIMEOUT)
+    return _extract_zip_urls(driver.page_source, revisor_url)
 
 
-def extract_zip_urls(page_source: str, revisor_url: str) -> Optional[str]:
+def _extract_zip_urls(page_source: str, revisor_url: str) -> Optional[str]:
     if ms := re.findall(r"\"homework_url\":\s?\"(?P<url>[\w\\\-\_:\u002F\.]+\.zip)\"", page_source):
         urls = {m.replace(r"\u002F", "/") for m in ms}
         return sorted(urls, key=_extract_version_id)
@@ -161,7 +216,7 @@ def extract_zip_urls(page_source: str, revisor_url: str) -> Optional[str]:
     return []
 
 
-def unzip_homework_file(homework_zip: Path, iteration: int, homework: Homework) -> Tuple[Path, str]:
+def _unzip_homework_file(homework_zip: Path, iteration: int, homework: Homework) -> Tuple[Path, str]:
     assert homework_zip.suffix == ".zip", f"Unexpected extension {homework_zip.suffix} for {homework_zip} 😿"
     homework_directory = homework_zip.parent
     version_id = _extract_version_id(homework_zip.name)
@@ -181,7 +236,12 @@ def _extract_version_id(homework_zip_filename: str) -> str:
         return group_dict["id"]
 
 
-# TODO: extract reusable client with batch mode
+def _print_banner(homework):
+    f = Figlet(font="slant")
+    print(f.renderText(f"{homework.second_name_slug} {homework.problem}.{homework.iteration}"))
+    print(homework.issue_url)
+
+
 # TODO: add warnings for multiple versions for an iteration
 
 

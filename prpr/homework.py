@@ -7,6 +7,7 @@ from enum import IntEnum
 from typing import Optional, Tuple
 
 from loguru import logger
+from transliterate import slugify
 
 from prpr.date_utils import LOCAL_TIMEZONE, parse_datetime
 
@@ -205,6 +206,10 @@ class Homework:
     @staticmethod
     def order_key(homework: Homework) -> Tuple[int, datetime]:
         return homework.status, homework.status_updated
+
+    @property
+    def second_name_slug(self):
+        return slugify(self.student.rsplit(maxsplit=3)[-2].lower(), "ru")
 
 
 @dataclass

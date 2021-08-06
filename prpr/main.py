@@ -9,7 +9,7 @@ from loguru import logger
 
 from prpr.cli import DOWNLOAD, INTERACTIVE, POST_PROCESS, configure_arg_parser
 from prpr.config import get_config
-from prpr.download import download
+from prpr.download import BatchDownloader, DownloadMode
 from prpr.filters import filter_homeworks
 from prpr.homework import Homework
 from prpr.post_process import post_process_homework
@@ -90,20 +90,31 @@ def main():
     sorted_homeworks = sort_homeworks(filtered_homeworks)
     print_issue_table(sorted_homeworks, last=DISPLAYED_TAIL_LENGTH)
 
-    if args.open:
-        open_pages(sorted_homeworks)
+    if not args.download and args.open:
+        open_pages_for_first(sorted_homeworks)
 
     if args.download:
         if to_download := [hw for hw in sorted_homeworks if hw.open_or_in_review]:
             if args.interactive:
+                logger.warning("--interactive is deprecated and to be removed, use `--download interactive` instead.")
                 to_download = choose_to_download(to_download)
-            for d in to_download[:1]:  # TODO: Configure the number
-                logger.info(f"Downloading {d}...")
-                results = download(d, config, headless=not args.head)  # TODO: This is ugly, refactor
-                if args.post_process and results:
-                    logger.info(f"Post-processing {d}...")
-                    post_process_homework(results, d, config=config)
-
+            elif args.download == DownloadMode.ALL:
+                pass
+            elif args.download == DownloadMode.ONE:
+                to_download = to_download[:1]
+            elif args.download == DownloadMode.INTERACTIVE:
+                # TODO: deprecate --interactive
+                to_download = choose_to_download(to_download)
+            else:
+                raise ValueError(f"Unexpected download mode: {args.download} 😿")
+            logger.info("Downloading {} homeworks...", len(to_download))
+            with BatchDownloader(config, headless=not args.head) as downloader:
+                for results, homework in zip(downloader.download_batch(to_download), to_download):
+                    if args.post_process and results:
+                        logger.info(f"Post-processing {homework}...")
+                        post_process_homework(results, homework, config=config)
+                    if args.open:
+                        _open_pages_for_homework(homework)
         else:
             logger.warning("There's nothing to download. Consider relaxing the filters if that's not what you expect.")
     else:
@@ -120,17 +131,21 @@ def extract_course(issue):
     return "unknown_course"
 
 
-def open_pages(sorted_homeworks: list[Homework]) -> None:
+def open_pages_for_first(sorted_homeworks: list[Homework]) -> None:
     if sorted_homeworks:
         homework_to_open = sorted_homeworks[0]
-        startrek_url = homework_to_open.issue_url
-        logger.info(f"Opening {startrek_url} ...")
-        webbrowser.open(startrek_url)
-        if revisor_url := homework_to_open.revisor_url:
-            logger.info(f"Opening {revisor_url} ...")
+        _open_pages_for_homework(homework_to_open)
+
+
+def _open_pages_for_homework(homework_to_open):
+    startrek_url = homework_to_open.issue_url
+    logger.info(f"Opening {startrek_url} ...")
+    webbrowser.open(startrek_url)
+    if revisor_url := homework_to_open.revisor_url:
+        logger.info(f"Opening {revisor_url} ...")
+        webbrowser.open(revisor_url)
+        if homework_to_open.iteration and homework_to_open.iteration > 1:
             webbrowser.open(revisor_url)
-            if homework_to_open.iteration and homework_to_open.iteration > 1:
-                webbrowser.open(revisor_url)
 
 
 def configure_logger(verbose):

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import subprocess
-from typing import Union
+from typing import Optional, Union
 
 from loguru import logger
 
@@ -12,9 +14,14 @@ RUNNER = "runner"
 COURSES = "courses"
 PROBLEMS = "problems"
 
+PREV_KEYS = {"{it_prev}", "{it_prev_}", "{it_prev_zip}", "{it_prev_zip_}"}
+
 
 def post_process_homework(
-    results: list[DownloadedResult], homework: Homework = None, config=None, print_step_output=True
+    results: list[DownloadedResult],
+    homework: Optional[Homework] = None,
+    config=None,
+    print_step_output=True,
 ):
     if not (process_config := config.get(PROCESS, {})):
         logger.error("Aaaaa")  # TODO
@@ -34,9 +41,7 @@ def run_steps(steps_batch, runner, results, steps_batch_name, print_step_output)
     for step_name, command_template in steps_batch["steps"].items():
         result_last = results[-1]
         command = _interpolate(command_template, result_last)
-        if diff := any(
-            key in command_template for key in {"{it_prev}", "{it_prev_}", "{it_prev_zip}", "{it_prev_zip_}"}
-        ):
+        if diff := any(key in command_template for key in PREV_KEYS):
             if len(results) >= 2:
                 result_prev = results[-2]
                 command = _interpolate_previous(command, result_prev)
