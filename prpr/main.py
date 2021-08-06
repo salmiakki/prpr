@@ -93,8 +93,6 @@ def main():
     if not args.download and args.open:
         open_pages_for_first(sorted_homeworks)
 
-    logger.debug("args.download = {}", args.download)
-
     if args.download:
         if to_download := [hw for hw in sorted_homeworks if hw.open_or_in_review]:
             if args.interactive:
