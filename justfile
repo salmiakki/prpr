@@ -1,10 +1,23 @@
 # What's a justfile? It's like makefile, but a joy to use. See https://github.com/casey/just
 
+process:
+    python3 -m prpr.main --down interactive --head --post-process -vv
+
+dall:
+    python3 -m prpr.main --down all --head --post-process -vv
+
+next:
+    python3 -m prpr.main --down -vv --head --post-process
+
+alias one := process_first
+
+process_first:
+    python3 -m prpr.main --down -vv --head --post-process
+
+alias d := down
+
 down:
     python3 -m prpr.main --down --verbose --interactive
-
-process:
-    python3 -m prpr.main --down -vv --head --post-process --interactive
 
 pr PR:
     python3 -m prpr.main --down -vv --head --post-process --pr {{PR}}
@@ -46,5 +59,3 @@ mypy:
 
 precommit:
     pre-commit run --all-files
-
-alias d := down

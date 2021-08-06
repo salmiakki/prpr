@@ -1,7 +1,8 @@
 import argparse
 import datetime as dt
 
-from prpr.filters import Mode
+from prpr.download import DownloadMode
+from prpr.filters import FilterMode
 
 DOWNLOAD = "--download"
 POST_PROCESS = "--post-process"
@@ -38,9 +39,9 @@ def configure_filter_arguments(filters):
     filters.add_argument(
         "-m",
         "--mode",
-        type=Mode.from_string,
-        choices=list(Mode),
-        default=Mode.STANDARD,
+        type=FilterMode.from_string,
+        choices=list(FilterMode),
+        default=FilterMode.STANDARD,
         help="""filter mode
             standard: in review, open or on the side of user
             open: in review or open
@@ -91,8 +92,15 @@ def configure_download_arguments(download_options):
     download_options.add_argument(
         "-d",
         DOWNLOAD,  # TODO: Add help messages when we have all the options we want
-        action="store_true",
-        default=False,
+        # action="store_true",
+        nargs="?",
+        type=DownloadMode.from_string,
+        choices=list(DownloadMode),
+        const=DownloadMode.ONE,
+        help="""download mode
+            one: first by deadline,
+            interactive: a single
+            all: all, duh""",
     )
     download_options.add_argument(
         "--head",
@@ -103,7 +111,7 @@ def configure_download_arguments(download_options):
     download_options.add_argument(
         "-i",
         INTERACTIVE,
-        help="choose which homework to download interactively",
+        help="choose which homework to download interactively (deprecated)",
         action="store_true",
         default=False,
     )
