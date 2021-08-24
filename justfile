@@ -1,5 +1,10 @@
 # What's a justfile? It's like makefile, but a joy to use. See https://github.com/casey/just
 
+all_interactive: # all interactive
+    python3 -m prpr.main --down interactive-all --head --post-process -vv
+
+alias alli := all_interactive
+
 process:
     python3 -m prpr.main --down interactive --head --post-process -vv
 

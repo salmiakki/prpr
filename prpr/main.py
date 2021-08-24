@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import sys
 import webbrowser
+from enum import Enum
+from typing import Union
 
 import questionary
 from loguru import logger
@@ -15,6 +17,11 @@ from prpr.homework import Homework
 from prpr.post_process import post_process_homework
 from prpr.startrack_client import get_startack_client
 from prpr.table import DISPLAYED_TAIL_LENGTH, print_issue_table
+
+
+class InteractiveCommand(Enum):
+    CHECK_AGAIN = "🔁 Check again"
+
 
 COMPONENT_SUFFIXES = "component_suffixes"
 
@@ -34,17 +41,20 @@ def sort_homeworks(homeworks: list[Homework]) -> list[Homework]:
     return sorted(homeworks, key=Homework.order_key)
 
 
-def choose_to_download(to_download: list[Homework]) -> list[Homework]:
+def choose_to_download(to_download: list[Homework]) -> Union[list[Homework], InteractiveCommand]:
     if not to_download:
         return []
     if len(to_download) == 1:
         logger.debug("Just one homework to be choose from, choosing it.")
         return to_download
     hw_strings = [str(hw) for hw in to_download]
+    check_again_string = InteractiveCommand.CHECK_AGAIN.value
     chosen_title = questionary.select(
         "Which homework do you want to download?",
-        choices=hw_strings,
+        choices=hw_strings + [check_again_string],
     ).ask()
+    if chosen_title == check_again_string:
+        return InteractiveCommand.CHECK_AGAIN
     return [hw for hw in to_download if str(hw) == chosen_title]
 
 
@@ -58,70 +68,100 @@ def main():
     config = get_config()
     client = get_startack_client(config)
 
-    issues = client.get_issues()
-    logger.debug(f"Got {len(issues)} homeworks.")
-
-    homeworks = [
-        Homework(
-            issue_key=issue.key,
-            summary=issue.summary,
-            cohort=get_cohort(issue.cohort, issue.components, config),
-            status=issue.status.key,
-            status_updated=issue.statusStartTime,
-            description=issue.description,
-            number=number,
-            first=issue.previousStatus is None,
-            course=extract_course(issue),
-            transitions=client.get_status_history(issue.key, issue.status.key),
+    should_run = True
+    last_processed = None
+    while should_run:
+        issues = client.get_issues()
+        logger.debug(f"Got {len(issues)} homeworks.")
+        homeworks = [
+            Homework(
+                issue_key=issue.key,
+                summary=issue.summary,
+                cohort=get_cohort(issue.cohort, issue.components, config),
+                status=issue.status.key,
+                status_updated=issue.statusStartTime,
+                description=issue.description,
+                number=number,
+                course=extract_course(issue),
+                transitions=client.get_status_history(issue.key, issue.status.key),
+            )
+            for number, issue in enumerate(issues, 1)
+        ]
+        filtered_homeworks = filter_homeworks(
+            homeworks,
+            mode=args.mode,
+            config=config,
+            problems=args.problems,
+            no=args.no,
+            student=args.student,
+            cohorts=args.cohorts,
+            from_date=args.from_date,
+            to_date=args.to_date,
         )
-        for number, issue in enumerate(issues, 1)
-    ]
-    filtered_homeworks = filter_homeworks(
-        homeworks,
-        mode=args.mode,
-        config=config,
-        problems=args.problems,
-        no=args.no,
-        student=args.student,
-        cohorts=args.cohorts,
-        from_date=args.from_date,
-        to_date=args.to_date,
-    )
-    sorted_homeworks = sort_homeworks(filtered_homeworks)
-    print_issue_table(sorted_homeworks, last=DISPLAYED_TAIL_LENGTH)
-
-    if not args.download and args.open:
-        open_pages_for_first(sorted_homeworks)
-
-    if args.download:
-        if to_download := [hw for hw in sorted_homeworks if hw.open_or_in_review]:
+        sorted_homeworks = sort_homeworks(filtered_homeworks)
+        print_issue_table(sorted_homeworks, last=DISPLAYED_TAIL_LENGTH, last_processed=last_processed)
+        if not args.download and args.open:
+            open_pages_for_first(sorted_homeworks)
+        if not args.download:
+            if args.post_process:
+                logger.warning("{} is ignored without {} at the moment.", POST_PROCESS, DOWNLOAD)
             if args.interactive:
-                logger.warning("--interactive is deprecated and to be removed, use `--download interactive` instead.")
-                to_download = choose_to_download(to_download)
-            elif args.download == DownloadMode.ALL:
-                pass
-            elif args.download == DownloadMode.ONE:
-                to_download = to_download[:1]
-            elif args.download == DownloadMode.INTERACTIVE:
-                # TODO: deprecate --interactive
-                to_download = choose_to_download(to_download)
-            else:
-                raise ValueError(f"Unexpected download mode: {args.download} 😿")
-            logger.info("Downloading {} homeworks...", len(to_download))
-            with BatchDownloader(config, headless=not args.head) as downloader:
-                for results, homework in zip(downloader.download_batch(to_download), to_download):
-                    if args.post_process and results:
-                        logger.info(f"Post-processing {homework}...")
-                        post_process_homework(results, homework, config=config)
-                    if args.open:
-                        _open_pages_for_homework(homework)
+                logger.warning("{} is ignored without {} at the moment", INTERACTIVE, DOWNLOAD)
+            should_run = False
         else:
-            logger.warning("There's nothing to download. Consider relaxing the filters if that's not what you expect.")
-    else:
-        if args.post_process:
-            logger.warning("{} is ignored without {} at the moment.", POST_PROCESS, DOWNLOAD)
-        if args.interactive:
-            logger.warning("{} is ignored without {} at the moment", INTERACTIVE, DOWNLOAD)
+            if open_or_in_review := [hw for hw in sorted_homeworks if hw.open_or_in_review]:
+                if args.interactive:
+                    logger.warning(
+                        "--interactive is deprecated and to be removed, use `--download interactive` instead."
+                    )
+                    to_download = choose_to_download(open_or_in_review)
+                    if to_download == InteractiveCommand.CHECK_AGAIN:
+                        should_run = args.download
+                        continue
+                    if to_download:
+                        assert len(to_download) == 1
+                        last_processed = to_download[0]
+                elif args.download == DownloadMode.ALL:
+                    to_download = open_or_in_review
+                elif args.download == DownloadMode.ONE:
+                    to_download = open_or_in_review[:1]
+                elif args.download == DownloadMode.INTERACTIVE or args.download == DownloadMode.INTERACTIVE_ALL:
+                    # TODO: deprecate --interactive
+                    to_download = choose_to_download(open_or_in_review)
+                    if to_download == InteractiveCommand.CHECK_AGAIN:
+                        should_run = True
+                        continue
+                    if to_download:
+                        last_processed = to_download[0]
+                else:
+                    raise ValueError(f"Unexpected download mode: {args.download} 😿")
+                if not to_download:
+                    logger.warning("Nothing to download.")
+                    should_run = False
+                    continue
+                hw_noun = "homeworks" if len(to_download) > 1 else "homework"
+                logger.info("Downloading {} {}...", len(to_download), hw_noun)
+                with BatchDownloader(config, headless=not args.head) as downloader:
+                    print_banner = len(open_or_in_review) > 1 and args.download in {
+                        DownloadMode.ALL,
+                        DownloadMode.INTERACTIVE_ALL,
+                    }
+                    for results, homework in zip(
+                        downloader.download_batch(to_download, print_banner=print_banner),
+                        to_download,
+                    ):
+                        if args.post_process and results:
+                            logger.info(f"Post-processing {homework}...")
+                            post_process_homework(results, homework, config=config)
+                        if args.open:
+                            _open_pages_for_homework(homework)
+                should_run = args.download == DownloadMode.INTERACTIVE_ALL and len(open_or_in_review) >= 2
+            else:
+                logger.warning(
+                    "There's nothing to download. Consider relaxing the filters if that's not what you expect."
+                )
+                should_run = False
+                continue
 
 
 def extract_course(issue):

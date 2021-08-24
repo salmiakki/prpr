@@ -28,6 +28,7 @@ class DownloadMode(Enum):
     ALL = auto()
     # TODAY = auto() TODO: add customizable day end
     INTERACTIVE = auto()
+    INTERACTIVE_ALL = auto()
 
     def __str__(self):
         return self.name.lower().replace("_", "-")
@@ -77,7 +78,7 @@ class BatchDownloader:
     def download_batch(self, homeworks: Iterable[Homework], print_banner=True):
         with self.driver as driver:
             for homework in homeworks:
-                if print_banner and len(homeworks) > 1:
+                if print_banner:
                     _print_banner(homework)
                 logger.info(f"Downloading {homework}...")
                 homework_directory = _get_homework_directory(homework, self.download_config)
