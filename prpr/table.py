@@ -10,7 +10,7 @@ from prpr.homework import Homework, Status
 DISPLAYED_TAIL_LENGTH = None
 
 
-def print_issue_table(homeworks: list[Homework], last=None):
+def print_issue_table(homeworks: list[Homework], last=None, last_processed=None):
     if not homeworks:
         logger.warning("No homeworks for chosen filter combination.")
         return
@@ -33,14 +33,16 @@ def print_issue_table(homeworks: list[Homework], last=None):
         )
         table.add_row(
             *row_columns,
-            style=compute_style(homework),
+            style=compute_style(homework, last_processed=last_processed),
         )
 
     console = Console()
     console.print(table)
 
 
-def compute_style(homework):  # TODO: consider moving to Homework
+def compute_style(homework: Homework, last_processed=None):  # TODO: consider moving to Homework
+    if homework == last_processed:
+        return "dim"
     if homework.deadline_missed:
         return "red"  # TODO: Move to dotfile
     if homework.deadline and homework.deadline.date() == datetime.now().date():
@@ -58,7 +60,7 @@ def setup_table(homeworks: list[Homework]) -> Table:
     table.add_column("pr", justify="right")
     table.add_column("i")
     table.add_column("student")
-    table.add_column("co")
+    table.add_column("co", justify="right")
     table.add_column("st")
     table.add_column("deadline", justify="right")
     table.add_column("left", justify="right")

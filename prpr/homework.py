@@ -59,11 +59,9 @@ class Homework:
         status_updated: str,  # e.g. "2020-09-23T22:14:37.658+0000"
         description: str,
         number: int,  # the ordinal number in of all one's tickets sorted by issue key
-        first: bool,
         course: str,  # e.g. "backend-developer"
         transitions: Optional[list[StatusTransition]] = None,
     ):
-        self.first = first  # TODO: remove
         self.number = number
         self.status_updated = parse_datetime(status_updated)
         self.description = description
@@ -196,7 +194,7 @@ class Homework:
     @property
     def revisor_url(self) -> str:
         if m := re.search(
-            r"==(?P<url>https://praktikum-admin\.yandex-team\.ru/office/revisor-review/(\d+)/(\w+))\b",
+            r"==(?P<url>https://pra(c|k)ti(k|c)um-admin\.yandex-team\.ru/office/revisor-review/(\d+)/(\w+))\b",
             self.description,
         ):
             return m.group("url")
@@ -210,6 +208,15 @@ class Homework:
     @property
     def second_name_slug(self):
         return slugify(self.student.rsplit(maxsplit=3)[-2].lower(), "ru")
+
+    def __eq__(self, o: object) -> bool:
+        if self is o:
+            return True
+        if not isinstance(o, Homework):
+            return False
+        return self.issue_key == o.issue_key
+
+    # __hash__ should probably be overridden as well
 
 
 @dataclass

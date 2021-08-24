@@ -99,8 +99,10 @@ def configure_download_arguments(download_options):
         const=DownloadMode.ONE,
         help="""download mode
             one: first by deadline,
-            interactive: a single
-            all: all, duh""",
+            all: all, duh
+            interactive: choose one interactively,
+            interactive-all: choose one interactively, repeat
+            """,
     )
     download_options.add_argument(
         "--head",

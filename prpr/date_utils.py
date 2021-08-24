@@ -1,7 +1,8 @@
 import datetime as dt
 from datetime import datetime, timezone
-from dateutil.relativedelta import relativedelta
 from typing import Optional, Tuple
+
+from dateutil.relativedelta import relativedelta
 
 LOCAL_TIMEZONE = datetime.now().astimezone().tzinfo
 

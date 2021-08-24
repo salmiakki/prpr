@@ -48,7 +48,7 @@ python3 -m prpr.main --help
 ```
 
 ```
-usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month,closed-previous-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-c COHORTS [COHORTS ...]] [-f FROM_DATE] [-t TO_DATE] [-o] [-d [{one,all,interactive}]] [--head] [-i] [-v] [--post-process]
+usage: main.py [-h] [-m {standard,all,open,closed,closed-this-month,closed-previous-month}] [-p PROBLEMS [PROBLEMS ...]] [-n NO] [-s STUDENT] [-c COHORTS [COHORTS ...]] [-f FROM_DATE] [-t TO_DATE] [-o] [-d [{one,all,interactive,interactive-all}]] [--head] [-i] [-v] [--post-process]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -79,11 +79,13 @@ filters:
                         the end date (YYYY-MM-DD)
 
 download:
-  -d [{one,all,interactive}], --download [{one,all,interactive}]
+  -d [{one,all,interactive,interactive-all}], --download [{one,all,interactive,interactive-all}]
                         download mode
                                     one: first by deadline,
-                                    interactive: a single
                                     all: all, duh
+                                    interactive: choose one interactively,
+                                    interactive-all: choose one interactively, repeat
+
   --head                download with visible browser window (default is headless, i.e. the window is hidden)
   -i, --interactive     choose which homework to download interactively (deprecated)
 
@@ -93,7 +95,13 @@ process:
 
 ### Примеры использования опций запуска
 
-Скачать и обработать архив с интерактивным выбором работы, открыть браузер, логирование уровня `INFO` (это рекомендованный вариант запуска):
+Скачать и обработать архив с интерактивным выбором работы с повтором, открыть браузер, логирование уровня `INFO` (это рекомендованный вариант запуска):
+
+```bash
+python -m prpr.main -v --download interactive-all --post-process --open
+```
+
+То же самое, только одна работа:
 
 ```bash
 python -m prpr.main -v --download interactive --post-process --open
@@ -241,7 +249,12 @@ process:
 
 ## История изменений
 
-### 2021-08-6
+### 2021-08-24
+
+* Добавлен режим `--download interactive-all`.
+* В меню появилось обновления статусов.
+
+### 2021-08-06
 
 * Добавлен режим `--download all`.
 * Вместо `--interactive` рекомендуется использовать `--download interactive`.
