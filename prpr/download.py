@@ -22,6 +22,9 @@ PAGE_LOAD_TIMEOUT = 60
 DRIVER_TIMEOUT = 110
 YOUR_DESCRIPTION_HERE = "your_description_here"
 
+HISTORY_TAB_XPATH = "//article[text()='История']"
+REVIEW_TAB_XPATH = "//article[text()='Код-ревью']"
+
 
 class DownloadMode(Enum):
     ONE = auto()
@@ -192,16 +195,15 @@ def _get_zip_urls(driver, revisor_url: str) -> list[str]:
     driver.maximize_window()
     driver.set_page_load_timeout(page_load_timeout)
     driver.get(revisor_url)
-    history_tab_xpath = "//span[text()='История']"
     try:
-        element = driver.find_element_by_xpath(history_tab_xpath)
+        element = driver.find_element_by_xpath(HISTORY_TAB_XPATH)
     except NoSuchElementException:
+        logger.debug(f"Element with XPath='{HISTORY_TAB_XPATH}' not found, trying XPath='{REVIEW_TAB_XPATH}'...")
         try:
-            code_review_tab_xpath = "//span[text()='Код-ревью']"
-            element = driver.find_element_by_xpath(code_review_tab_xpath)
+            element = driver.find_element_by_xpath(REVIEW_TAB_XPATH)
         except NoSuchElementException:
             logger.error(
-                f"Failed to find element with {code_review_tab_xpath=}. Are you logged in? Is the VPN connected?"
+                f"Failed to find element with XPath='{REVIEW_TAB_XPATH}'. Are you logged in? Is the VPN connected?"
             )
             sys.exit(1)
     element.click()
