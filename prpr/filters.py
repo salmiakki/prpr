@@ -80,7 +80,7 @@ def filter_homeworks(
     if problems:
         result = [h for h in result if h.problem in problems]
     if student:
-        result = [h for h in result if student in h.student]
+        result = [h for h in result if student.lower() in h.student.lower()]
     if cohorts:
         result = [h for h in result if h.cohort in cohorts]
     if from_date:
