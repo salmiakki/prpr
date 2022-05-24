@@ -86,6 +86,18 @@ def configure_filter_arguments(filters):
         help="the end date (YYYY-MM-DD)",
         type=dt.date.fromisoformat,
     )
+    filters.add_argument(
+        "-u",
+        "--user",
+        default=None,
+        type=str,
+        help="Search USER's tickets instead of my (USER - name in tracker)",
+    )
+    filters.add_argument(
+        "--free",
+        action="store_true",
+        help="show unassigned (free) tickets (overrides -u/--user)",
+    )
 
 
 def configure_download_arguments(download_options):

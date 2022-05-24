@@ -2,7 +2,7 @@
 startrek_token: your_token_here
 
 # Stuff below is optional:
-
+free_work_owner: lepervushina
 month_start: 16  # Meaning closed tickets are grouped by May 16-June 15, June 16-July 16 and so on.
 
 component_suffixes:  # suffixes for cohort definition according to course

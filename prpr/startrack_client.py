@@ -18,13 +18,15 @@ class PraktikTrackerClient(TrackerClient):
         super().__init__(*args, **kwargs)
         self.token = kwargs["token"]
 
-    def get_issues(self):
-        filter_expression = {
+    def _get_filter_expression(self, user: Optional[str] = None):
+        return {
             "queue": "PCR",
-            "assignee": "me()",
+            "assignee": user or "me()",
         }
+
+    def get_issues(self, user: Optional[str] = None):
         logger.debug("Fetching issues...")
-        issues = self.issues.find(filter=filter_expression)
+        issues = self.issues.find(filter=self._get_filter_expression(user))
         sorted_issues = sorted(issues, key=by_issue_key)
         return sorted_issues
 

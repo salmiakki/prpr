@@ -68,10 +68,19 @@ def main():
     config = get_config()
     client = get_startack_client(config)
 
+    user = args.user
+    work_owner = f"{user}'s" if user else "My"
+    if args.free:
+        if user:
+            logger.warning("Requested free tickets list, user parameter ignored")
+        user = config["free_work_owner"]
+        work_owner = "Free"
+    table_title = f"{work_owner} Praktikum Review Tickets"
+
     should_run = True
     last_processed = None
     while should_run:
-        issues = client.get_issues()
+        issues = client.get_issues(user=user)
         logger.debug(f"Got {len(issues)} homeworks.")
         homeworks = [
             Homework(
@@ -99,7 +108,9 @@ def main():
             to_date=args.to_date,
         )
         sorted_homeworks = sort_homeworks(filtered_homeworks)
-        print_issue_table(sorted_homeworks, last=DISPLAYED_TAIL_LENGTH, last_processed=last_processed)
+        print_issue_table(
+            sorted_homeworks, last=DISPLAYED_TAIL_LENGTH, last_processed=last_processed, title=table_title,
+        )
         if not args.download and args.open:
             open_pages_for_first(sorted_homeworks)
         if not args.download:
