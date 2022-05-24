@@ -18,6 +18,7 @@
 ```yaml
 startrek_token: your_token_here
 # Optional:
+free_work_owner: lepervushina  # owner of unassigned (free) tickets
 month_start: 16  # Meaning closed tickets are grouped by May 16-June 15, June 16-July 16 and so on.
 component_suffixes:  # suffixes for cohort definition according to course
   backend-developer: ''
@@ -77,6 +78,10 @@ filters:
                         the start date (YYYY-MM-DD)
   -t TO_DATE, --to-date TO_DATE
                         the end date (YYYY-MM-DD)
+  -u USER, --user USER
+                        show issues assigned for USER (name in tracker, like y-nikulin)
+  --free
+                        show unassigned (free) tickets (overrides -u/--user)
 
 download:
   -d [{one,all,interactive,interactive-all}], --download [{one,all,interactive,interactive-all}]
@@ -155,6 +160,12 @@ python -m prpr.main --mode closed --from-date 2021-04-16 --to-date 2021-05-15
 ```bash
 python -m prpr.main --mode closed-this-month
 python -m prpr.main --mode closed-previous-month
+```
+
+Вывести свободные работы
+
+```bash
+python -m prpr.main --free
 ```
 
 Достаточно указывать уникальный префикс ключа: можно `--down`, а не `--download`.
@@ -248,6 +259,11 @@ process:
 ```
 
 ## История изменений
+
+### 2022-05-24
+
+* Добавлен вывод свободных работ и отображение тикетов других ревьюверов.
+  NB: не забудьте скопировать настройку `free_work_owner: lepervushina` в `~/.prpr.yaml`.
 
 ### 2022-04-27
 
