@@ -92,7 +92,7 @@ def main():
                 description=issue.description,
                 number=number,
                 course=extract_course(issue),
-                transitions=client.get_status_history(issue.key, issue.status.key),
+                transitions=client.get_status_history(issue),
             )
             for number, issue in enumerate(issues, 1)
         ]
