@@ -1,10 +1,9 @@
-import json
-from datetime import datetime
-from typing import Optional, Tuple
+from typing import Optional
 
-import requests
 from loguru import logger
 from yandex_tracker_client import TrackerClient
+from yandex_tracker_client.exceptions import TrackerClientError
+from yandex_tracker_client.objects import Resource
 
 from prpr.date_utils import parse_datetime
 from prpr.homework import Homework, Status, StatusTransition
@@ -30,43 +29,36 @@ class PraktikTrackerClient(TrackerClient):
         sorted_issues = sorted(issues, key=by_issue_key)
         return sorted_issues
 
-    def get_status_history(self, issue_key: str, issue_status: str) -> Optional[list[StatusTransition]]:
+    def get_status_history(self, issue) -> Optional[list[StatusTransition]]:
+        issue_key, issue_status = issue.key, issue.status.key
         if issue_status not in {"open", "inReview"}:  # TODO: make configurable
             return None
         logger.debug(f"Fetching status history for {issue_key}")
         try:
-            changes = requests.get(
-                f"https://st-api.yandex-team.ru/v2/issues/{issue_key}/changelog",
-                headers={"Authorization": f"OAuth {self.token}"},
-            ).json()
-        except (requests.RequestException, json.JSONDecodeError):
+            changes = issue.changelog.get_all()
+        except TrackerClientError:
             logger.exception("Failed to fetch status history for {} 😿", issue_key)
+            return []
+
         transitions = []
         for change in changes:
-            if not isinstance(change, dict):
+            if not isinstance(change, Resource):
                 logger.warning(f"Unexpected change for {issue_key}: {change} 😿")
                 return []
             try:
-                timestamp = change.get("updatedAt")
+                timestamp = change.updatedAt
                 parsed_timestamp = parse_datetime(timestamp)
             except AttributeError:
                 logger.exception("Failed to parse change {} for {} 😿", change, issue_key)
-            for field in change.get("fields", []):
-                if field["field"]["id"] == "status":
-                    from_status_string = (field.get("from", {}) or {}).get("key", None)  # to Status
-                    to_status_string = field["to"]["key"]
+            for field in change.fields or []:
+                if field["field"].id == "status":
+                    from_status_string = getattr(field["from"], "key", None)  # to Status
+                    to_status_string = field["to"].key
                     from_status = Status.from_string(from_status_string) if from_status_string else None
                     to_status = Status.from_string(to_status_string)
                     t = StatusTransition(from_status, to_status, parsed_timestamp)
                     transitions.append(t)
         return transitions
-
-    def get_iteration_and_updated(self, key) -> Tuple[int, Optional[datetime]]:
-        transitions = self.get_status_history(key)
-        iteration = StatusTransition.compute_iteration(transitions)
-        timestamps = [t.timestamp for t in transitions if t.to == Status.OPEN]
-        last_open = timestamps[-1] if timestamps else None
-        return iteration, last_open
 
 
 def get_startack_client(config) -> PraktikTrackerClient:

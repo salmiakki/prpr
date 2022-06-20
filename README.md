@@ -260,6 +260,12 @@ process:
 
 ## История изменений
 
+### 2022-06-20
+
+* [Refactor] Метод `PraktikTrackerClient.get_status_history()` переписан с
+  использованием штатного интерфейса клиента Яндекс-трекера.
+* [Refactor] Удален метод `PraktikTrackerClient.get_iteration_and_updated()`.
+
 ### 2022-05-24
 
 * Добавлен вывод свободных работ и отображение тикетов других ревьюверов.
