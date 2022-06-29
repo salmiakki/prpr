@@ -1,7 +1,10 @@
 from typing import Optional
 
+import requests_cache
 from loguru import logger
+from requests.utils import check_header_validity
 from yandex_tracker_client import TrackerClient
+from yandex_tracker_client.connection import Connection
 from yandex_tracker_client.exceptions import TrackerClientError
 from yandex_tracker_client.objects import Resource
 
@@ -12,9 +15,33 @@ YANDEX_ORG_ID = 0
 STARTREK_TOKEN_KEY_NAME = "startrek_token"
 
 
+class CachedConnection(Connection):
+    def __init__(self, token, org_id, headers=None, verify=True, **kwargs):
+        super().__init__(token, org_id, headers=headers, verify=verify, **kwargs)
+        self.session = requests_cache.CachedSession(backend='memory')
+
+        self.session.verify = verify
+
+        if headers is not None:
+            self.session.headers.update(headers)
+
+        self.session.headers['Authorization'] = 'OAuth ' + (token or 'not provided')
+        self.session.headers['X-Org-Id'] = org_id or 'not provided'
+        self.session.headers['Content-Type'] = 'application/json'
+
+        # Check validity headers for requests >= 2.11
+        for header in self.session.headers.items():
+            check_header_validity(header)
+
+
 class PraktikTrackerClient(TrackerClient):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        self.connector = kwargs.pop('connector', Connection)
+        connection = kwargs.pop('connection', None)
+        if connection is None:
+            connection = self.connector(*args, **kwargs)
+
+        super().__init__(*args, connection=connection, **kwargs)
         self.token = kwargs["token"]
 
     def _get_filter_expression(self, user: Optional[str] = None):
@@ -66,7 +93,12 @@ def get_startack_client(config) -> PraktikTrackerClient:
         logger.error(f"{STARTREK_TOKEN_KEY_NAME} top-level key not found in config 😿")
         exit(1)
     token = config[STARTREK_TOKEN_KEY_NAME]
-    return PraktikTrackerClient(org_id=YANDEX_ORG_ID, base_url="https://st-api.yandex-team.ru", token=token)
+    return PraktikTrackerClient(
+        org_id=YANDEX_ORG_ID,
+        base_url="https://st-api.yandex-team.ru",
+        token=token,
+        connector=CachedConnection,
+    )
 
 
 def by_issue_key(issue) -> int:

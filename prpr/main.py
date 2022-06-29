@@ -18,12 +18,11 @@ from prpr.post_process import post_process_homework
 from prpr.startrack_client import get_startack_client
 from prpr.table import DISPLAYED_TAIL_LENGTH, print_issue_table
 
+COMPONENT_SUFFIXES = "component_suffixes"
+
 
 class InteractiveCommand(Enum):
     CHECK_AGAIN = "🔁 Check again"
-
-
-COMPONENT_SUFFIXES = "component_suffixes"
 
 
 def get_cohort(cohort, components, config):

@@ -6,6 +6,7 @@ pytest==5.4.1
 python-dateutil==2.8.1
 questionary==1.9.0
 requests==2.23.0
+requests_cache==0.9.4
 rich==10.1.0
 selenium==3.141.0
 transliterate==1.10.2
