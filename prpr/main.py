@@ -19,7 +19,6 @@ from prpr.startrack_client import get_startack_client
 from prpr.table import DISPLAYED_TAIL_LENGTH, print_issue_table
 
 COMPONENT_SUFFIXES = "component_suffixes"
-_components_cache = {}
 
 
 class InteractiveCommand(Enum):
@@ -32,11 +31,7 @@ def get_cohort(cohort, components, config):
         return cohort
 
     first_component = components[0]
-
-    if first_component.id not in _components_cache:
-        _components_cache[first_component.id] = first_component.name
-    component_name = _components_cache[first_component.id]
-
+    component_name = first_component.name
     suffix_mapper = config.get(COMPONENT_SUFFIXES, {})
     return cohort + suffix_mapper.get(component_name, "")
 
@@ -181,10 +176,7 @@ def main():
 
 def extract_course(issue):
     if components := issue.components:
-        component = components[0]
-        if component.id not in _components_cache:
-            _components_cache[component.id] = component.name
-        return _components_cache[component.id]
+        return components[0].name
     logger.warning(f"{issue.key} doesn't have components 😿")
     return "unknown_course"
 
