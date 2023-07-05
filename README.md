@@ -1,5 +1,9 @@
 # prpr
 
+**Разработка теперь ведется в форке: [Roxe322/prpr](https://github.com/Roxe322/prpr) 🫡 Пользуйтесь им 🖤**
+
+---
+
 ![example workflow](https://github.com/salmiakki/prpr/actions/workflows/actions.yaml/badge.svg)
 
 Вряд ли вы здесь случайно.
